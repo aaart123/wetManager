@@ -20,11 +20,21 @@ class MessageController extends CommonController
      * @param array 关键字数组
      * @return xml 回复消息体
      */
+<<<<<<< HEAD
     public function distributeText($param, $key)
     {
         $textmsg = $this->textModel->getData($key['strategyId']);
         $msg = sprintf($this->msgTemplate['text'], $param['FromUserName'], $param['ToUserName'], time(), $textmsg['msg']);
         return $msg;
+=======
+    public function distributeText($param, $keys)
+    {
+        foreach ($keys as $key) {
+            $textmsg = $this->textModel->getData($key['strategyId']);
+            $msg = sprintf($this->msgTemplate['text'], $param['FromUserName'], $param['ToUserName'], time(), $textmsg['msg']);
+            return $msg;
+        }
+>>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
     }
 
     /**

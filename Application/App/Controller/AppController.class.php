@@ -120,11 +120,17 @@ class AppController extends CommonController
     }
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
     /**
      * 处理app应用消息
      * @param array 关键字数组
      * @return xmlstring 转发回调消息
      */
+<<<<<<< HEAD
     private function distributeApp($param, $key)
     {
         if ($appData = $this->appModel->getAppData($key['strategyId'])) {
@@ -135,8 +141,34 @@ class AppController extends CommonController
                     $header = array('content-type: application/xml');
                     $response = httpRequest($url, $data, $header);
                     $this->sendMsg($response);
+=======
+    public function distributeApp($param, $keys)
+    {
+        foreach ($keys as $key) {
+            if ($appData = $this->appModel->getAppData($key['strategyId'])) {
+                switch ($appData['type']) {
+                    case 1: # 消息回复类应用
+                        $url = $appData['url']."?type=trigger&media_id=".$param['ToUserName'];
+                        $data = arr2Xml($param);
+                        $header = array('content-type: application/xml');
+                        $response = httpRequest($url, $data, $header);
+                        $this->sendMsg($response);
+                }
+>>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
             }
         }
     }
 
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+
+
+
+>>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
 }

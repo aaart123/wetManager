@@ -79,12 +79,21 @@ class MsgController extends CommonController
      */
     private function distributeMsg($param)
     {
+<<<<<<< HEAD
         if ($key = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'text')) {
             $message = new MessageController();
             $replayMsg = $message->distributeText($param, $key);
             $this->sendMsg($replayMsg);
         } elseif ($appMsg = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'app')) {
             $app = new AppController();
+=======
+        if ($keys = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'text')) {
+            $message = A('Message\Message');
+            $replayMsg = $message->distributeText($param, $keys);
+            $this->sendMsg($replayMsg);
+        } elseif ($appMsg = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'app')) {
+            $app = A('App\App');
+>>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
             $replayMsg = $app->distributeApp($param, $appMsg);
             $this->sendMsg($replayMsg);
         } else {
@@ -101,11 +110,19 @@ class MsgController extends CommonController
     {
         $eventKey = isset($param['EventKey']) ? $param['EventKey'] : '';
         if ($keys = $this->eventModel->getEventStrategy($param['ToUserName'], $param['Event'], $eventKey, 'text')) {
+<<<<<<< HEAD
             $message = new MessageController();
             $replayMsg = $message->distributeText($param, $keys);
             $this->sendMsg($replayMsg);
         } elseif ($appMsg = $this->eventModel->getEventStrategy($param['ToUserName'], $param['Event'], $eventKey, 'app')) {
             $app = new AppController();
+=======
+            $message = A('Message\Message');
+            $replayMsg = $message->distributeText($param, $keys);
+            $this->sendMsg($replayMsg);
+        } elseif ($appMsg = $this->eventModel->getEventStrategy($param['ToUserName'], $param['Event'], $eventKey, 'app')) {
+            $app = A('App\App');
+>>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
             $replayMsg = $app->distributeApp($param, $appMsg);
             $this->sendMsg($replayMsg);
         } else {
