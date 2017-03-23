@@ -64,7 +64,7 @@ class AppController extends CommonController
     public function isHasKeyword($publicId, $keywords)
     {
         foreach ($keywords as $keyword) {
-            if ($keys = $this->publicKeyModel->getKeyStrategy($publicId, $keyword['keyword'])) {
+            if ($keys = $this->publicKeyModel->getKeyStrategy($publicId, $keyword)) {
                 return false;
             }
         }
@@ -89,20 +89,7 @@ class AppController extends CommonController
         return true;
     }
 
-    /**
-     * 更新应用配置
-     * @param arr 配置数组
-     */
-    public function updateAppConfig($publicId, $configs, $appId)
-    {
-        foreach ($configs as $config) {
-            $where['public_id'] = $publicId;
-            $where['type'] = 'app';
-            $where['strategy_id'] = $appId;
-            !$this->publicKeyModel->updateData($where, $config) && E('配置更新失败');
-        }
-        return true;
-    }
+
 
     /**
      * 获取所有应用列表
@@ -131,4 +118,25 @@ class AppController extends CommonController
             return array();
         }
     }
+
+
+    /**
+     * 处理app应用消息
+     * @param array 关键字数组
+     * @return xmlstring 转发回调消息
+     */
+    private function distributeApp($param, $key)
+    {
+        if ($appData = $this->appModel->getAppData($key['strategyId'])) {
+            switch ($appData['type']) {
+                case 1: # 消息回复类应用
+                    $url = $appData['url'].'?type=trigger&media_id='.$param['ToUserName'];
+                    $data = arr2Xml($param);
+                    $header = array('content-type: application/xml');
+                    $response = httpRequest($url, $data, $header);
+                    $this->sendMsg($response);
+            }
+        }
+    }
+
 }

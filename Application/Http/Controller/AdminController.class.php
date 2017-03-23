@@ -1,43 +1,53 @@
 <?php
 namespace Http\Controller;
 
-use Http\Controller\BaseController;
+use Http\Controller\AuthController;
 
-class AdminController extends BaseController
+class AdminController extends AuthController
 {
-    private $msgActivity;
-    private $appActivity;
-    private $keyActivity;
-    private $receiveActivity;
-    private $fansActivity;
-    private $publicId;
     
     public function __construct()
     {
         parent::__construct();
-        $this->publicId = session('plat_public_id');
-        $this->publicId = 'gh_c75321282c18';
-        $this->msgActivity = A('Base/Msg');
-        $this->appActivity = A('App/App');
-        $this->keyActivity = A('Base/Key');
-        $this->fansActivity = A('Base/fans');
-        $this->receiveActivity = A('Base/Receive');
     }
 
     public function test()
     {
-        $publicId ='gh_c75321282c18';
-        $thisObj = A('Base/Receive');
+        $param = array(
+            'ToUserName'=>'111',
+            'FromUserName'=>2,''
+        );
+        $data = arr2Xml($param);
 
-        $appid = $thisObj->getAuthorizerAppid($publicId);
-        $userOpenidModel = D('userOpenid');
-
-
-        var_dump($appid);
-        var_dump($userOpenidModel);
+        echo $data;
     }
 
-/**--------------------------------------------粉丝管理-------------------------------------------------*/
+
+/**-------------------------------------------事件列表--------------------------------------------------------*/
+
+    /**
+     * 获取自动回复
+     * http://www.koudaidaxue.com/index.php/http/admin/getReply
+     */
+    public function getReply()
+    {
+        if ($replys = $this->keyActivity->getReply($this->publicId)) {
+            echo json_encode([
+                'errcode' => 0,
+                'msg' => $replys
+            ]);exit;
+        } else {
+            echo json_encode([
+                'errcode' => 40001,
+                'msg' => '失败'
+            ]);exit;
+        }
+    }
+
+
+
+/**-------------------------------------------粉丝管理-------------------------------------------------*/
+
     /**
      * 同步粉丝
      * http://www.koudaidaxue.com/index.php/http/admin/syncFans
@@ -120,49 +130,27 @@ class AdminController extends BaseController
      */
     public function addText()
     {
-        //示例  $_POST = array(
+        $keyMsg = I('post.');
+        // $keyMsg = array(
         //    'key' => '关键字',
         //    'msg' => '回复文本',
-        //  );
-        $keyMsg = I('post.');
+        // );
 
         if ($keyId = $this->msgActivity->addText($this->publicId, $keyMsg)) {
-            echo json_encode([
-            'errcode' => 0,
-            'msg' => $keyId
-            ]);
-            exit;
+            echo json_encode(array(
+                'errcode' => 0,
+                'msg' => $keyId
+            ));exit;
         } else {
-            echo json_encode([
-            'errcode' => 40001,
-            'msg' => '添加失败'
-            ]);
-            exit;
+            echo json_encode(array(
+                'errcode' => 40001,
+                'msg' => '添加失败'
+            ));exit;
         }
     }
 
-    /**
-     * 获取自动回复
-     * http://www.koudaidaxue.com/index.php/http/admin/getReply
-     */
-    public function getReply()
-    {
-        // 获取自动回复
-            // http://www.koudaidaxue.com/index.php/http/admin/getReply
-        if ($replys = $this->keyActivity->getReply($this->publicId)) {
-            echo json_encode([
-                'errcode' => 0,
-                'msg' => $replys
-            ]);
-            exit;
-        } else {
-            echo json_encode([
-                'errcode' => 40001,
-                'msg' => '失败'
-            ]);
-            exit;
-        }
-    }
+
+
 
 
 
@@ -202,29 +190,36 @@ class AdminController extends BaseController
     }
 
     /**
-     * 获取已开启应用列表
+     * 获取已开启应用列表✅
      * http://www.koudaidaxue.com/index.php/http/admin/getOpenAppList
      */
     public function getOpenAppList()
     {
 
         $appList = $this->appActivity->getAppListByPublic($this->publicId);
+        foreach($appList as &$value){
+            if( $this->appActivity->isOpen($this->publicId,$value['app_id']) )
+            {
+                $value['is_open'] = 1;
+            }else{
+                $value['is_open'] = 0;
+            }
+        }
         echo json_encode([
             'errcode' => 0,
             'msg' => $appList
-        ]);
-        exit;
+        ]);exit;
     }
 
     /**
-     * 开启应用
-     * http://www.koudaidaxue.com/index.php/http/admin/openApp?appId=1
+     * 开启应用✅
+     * http://www.koudaidaxue.com/index.php/http/admin/openApp
      */
     public function openApp()
     {
         $_POST = array(
             'appId'=>1,
-            'keywords'=>['关键字一','关键字二'],
+            'keywords'=>['关键字开启1','关键字开启2'],
         );
         $appId = I('post.appId');
         $keywords = I('post.keywords');
@@ -232,68 +227,92 @@ class AdminController extends BaseController
         if (!$this->appActivity->isHasKeyword($this->publicId, $keywords)) {
             echo json_encode([
                 'errcode' => 40001,
-                'msg' => '关键字冲突'
+                'msg' => '关键字冲突！'
             ]);exit;
         }
-        if ($result = $this->appActivity->addAppConfig($this->publicId, $keywords, $appId)) {
+        if ( $result = $this->appActivity->addAppConfig($this->publicId, $keywords, $appId) )
+        {
             echo json_encode([
                 'errcode' => 0,
-                'msg' => $appData
-            ]);
-            exit;
+                'msg' => '开启成功！',
+            ]);exit;
         } else {
             echo json_encode([
                 'errcode' => 40001,
-                'msg' => '失败'
-            ]);
-            exit;
+                'msg' => '开启失败！'
+            ]);exit;
         }
     }
 
     /**
-     * 更新应用配置
+     * 更新应用配置✅
      * http://www.koudaidaxue.com/index.php/http/admin/updateAppConfig?appId=1
      * $keywords = [ '关键词1', '关键词2'，...];
      */
     public function updateAppConfig()
     {
-        $keywords = I('post.');
-        $appId = I('get.appId');
-        if ($result = $this->appActivity->updateAppConfig($this->publicId, $keywords, $appId)) {
-            echo json_encode([
-                'errcode' => 0,
-                'msg' => $result
-            ]);
-            exit;
-        } else {
-            echo json_encode([
-                'errcode' => 40001,
-                'msg' => '失败'
-            ]);
-            exit;
+        $_POST = array(
+            'appId'=>1,
+            'keywords'=>['关键词111','关键词222'],
+        );
+        $keywords = I('post.keywords');
+        $appId = I('post.appId');
+        M()->startTrans();
+        if($this->appActivity->closeApp($this->publicId,$appId))//先删除
+        {
+            if($this->appActivity->isHasKeyword($this->publicId, $keywords))//判断是否关键字冲突
+            {
+                if($this->appActivity->addAppConfig($this->publicId, $keywords, $appId))//添加应用
+                {
+                    M()->commit();
+                    echo json_encode(array(
+                        'errcode'=>0,
+                        'msg'=>'修改成功！'
+                    ));exit;
+                }else{
+                    M()->rollback();
+                    echo json_encode(array(
+                        'errcode'=>40003,
+                        'msg'=>'开启失败！',
+                    ));eixt;
+                }
+            }else{
+                M()->rollback();
+                echo json_encode(array(
+                    'errcode'=>40001,
+                    'msg'=>'关键词冲突！',
+                ));exit;
+            }
+        }else{
+            M()->rollback();
+            echo json_encode(array(
+                'errcode'=>40002,
+                'msg'=>'关闭失败！',
+            ));exit;
         }
     }
 
-
     /**
-     * 关闭应用
+     * 关闭应用✅
      * http://www.koudaidaxue.com/index.php/http/admin/closeApp?appId=1
      */
     public function closeApp()
     {
-        $appId = I('get.appId');
+        $_POST = array(
+            'appId'=>1
+        );
+        $appId = I('post.appId');
         if ($result = $this->appActivity->closeApp($this->publicId, $appId)) {
             echo json_encode([
                 'errcode' => 0,
-                'msg' => $result
-            ]);
-            exit;
+                'msg' => '关闭成功！'
+            ]);exit;
         } else {
             echo json_encode([
                 'errcode' => 40001,
-                'msg' => '失败'
-            ]);
-            exit;
+                'msg' => '关闭失败！'
+            ]);exit;
         }
     }
+
 }

@@ -1,12 +1,12 @@
 <?php
 namespace Event\Controller;
 
-use Event\Controller\CommonController;
+use Base\Controller\BaseController;
 
 /**
  * 关注/取关事件处理类
  */
-class SubscribeController extends CommonController
+class SubscribeController extends BaseController
 {
     public function __construct()
     {

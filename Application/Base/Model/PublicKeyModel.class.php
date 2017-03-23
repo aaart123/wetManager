@@ -88,7 +88,7 @@ class PublicKeyModel extends BaseModel
         if (!empty($type)) {
             $where['type'] = $type;
         }
-        $key = $this->where($where)->select();
+        $key = $this->where($where)->find();
         return $this->parseFieldsMap($key);
     }
 

@@ -1,12 +1,12 @@
 <?php
-namespace Base\Controller;
+namespace Message\Controller;
 
-use Base\Controller\CommonController;
+use Base\Controller\BaseController;
 
 /**
  * 关键词控制类
  */
-class KeyController extends CommonController
+class KeyController extends BaseController
 {
 
     public function __construct()
@@ -33,10 +33,10 @@ class KeyController extends CommonController
         foreach ($apps as $app) {
             $datas = $this->publicKeyModel->getKeyStrategy($publicId, $app['keyword'], 'app');
             foreach ($datas as $data) {
-                $data1 = $this->appModel->getAppData($data['strategyId']);
+                $data1 = $this->appModel->getData($data['strategyId']);
                 $msg[] = array_merge($data, $data1);
             }
         }
-        return $mgs;
+        return $msg;
     }
 }
