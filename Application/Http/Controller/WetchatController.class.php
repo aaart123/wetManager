@@ -12,10 +12,6 @@ class WetchatController extends AuthController
 {
     private $wetApi;
     private $menuActivity;
-<<<<<<< HEAD
-=======
-    private $publicId;
->>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
     private $newsModel;
     private $mediaModel;
     public function __construct()
@@ -24,11 +20,7 @@ class WetchatController extends AuthController
         $this->wetApi = new WetchatApiController();
         $this->newsModel = new NewsModel();
         $this->mediaModel = new MediaModel();
-<<<<<<< HEAD
         $this->menuActivity = new MenuController();
-=======
-        $this->menuActivity = new MenuController($this->publicId);
->>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
         $this->mediaModel->publicId = $this->publicId;
         $this->newsModel->publicId = $this->publicId;
         $this->wetApi->publicId = $this->publicId;
@@ -81,7 +73,6 @@ class WetchatController extends AuthController
         $post = I('post.');
         // 添加菜单项
             // http://www.koudaidaxue.com/index.php/http/wetchat/addMenu
-<<<<<<< HEAD
             // $post = [
             //     'event' => 'click',
             //     'key' => '生日蛋糕',
@@ -104,29 +95,6 @@ class WetchatController extends AuthController
             ]);
             exit;
         }
-=======
-            $post = [
-                'event' => 'click',
-                'key' => 'key_11334',
-                'strategyId' => '1',
-                'type' => 'news'
-            ];
-            $menuActivity = new MenuController();
-            $menuActivity->publicId = $this->publicId;
-            if ($menuActivity->createMenuEvent($post)) {
-                echo json_encode([
-                'errcode' => 0,
-                'errmsg' => '成功'
-                ]);
-                exit;
-            } else {
-                echo json_encode([
-                'errcode' => 1002,
-                'errmsg' => '失败'
-                ]);
-                exit;
-            }
->>>>>>> ceec921bc1e6bc88ee6cd6f194b24a2cdbe918de
     }
 
     public function syncMaterial($type)
