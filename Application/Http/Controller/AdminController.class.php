@@ -17,7 +17,7 @@ class AdminController extends BaseController
         parent::__construct();
         $this->publicId = session('plat_public_id');
         $this->publicId = 'gh_c75321282c18';
-        $this->msgActivity = A('Base/Msg');
+        $this->msgActivity = A('Message/Message');
         $this->appActivity = A('App/App');
         $this->keyActivity = A('Base/Key');
         $this->fansActivity = A('Base/fans');

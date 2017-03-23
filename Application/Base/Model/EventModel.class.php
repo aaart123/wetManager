@@ -6,7 +6,7 @@ use Base\Model\BaseModel;
 class EventModel extends BaseModel
 {
 
-    protected $trueTableName;
+    protected $trueTableName = 'kdgx_plat_public_event';
 
     protected $_map = [
         'eventId' => 'event_id',
@@ -103,11 +103,8 @@ class EventModel extends BaseModel
      * @param arr 条件数组
      * @param str 事件
      */
-    public function updateData($where, $keyword)
+    public function updateData($where, $data)
     {
-        $data = [
-            'keyword' => $keyword
-        ];
         !$this->create($data) && E('数据更新失败');
         return $this->where($where)->save();
     }

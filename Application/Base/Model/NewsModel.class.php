@@ -39,6 +39,9 @@ class NewsModel extends BaseModel
      */
     public function editData($where, $data)
     {
+        if (isset($data['newsId'])) {
+            unset($data['newsId']);
+        }
         !$this->create($data) && E($this->getError());
         return $this->where($where)->save();
     }
@@ -91,6 +94,9 @@ class NewsModel extends BaseModel
             $item = array_shift($news);
             $item['public_id'] = $this->publicId;
             $item['lastid'] = $lastid;
+            if (isset($item['newsId'])) {
+                unset($item['newsId']);
+            }
             $lastid = $this->addData($item);
             $this->addNewsItem($news, $lastid);
             return $lastid;

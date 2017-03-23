@@ -1,12 +1,17 @@
 <?php 
 namespace Event\Controller;
 
-use Base\Controller\WetchatApiController;
+use Base\Controller\CommonController;
 
 /**
  * 事件控制基础类
  */
-class BaseController extends WetchatApiController
+class BaseController extends CommonController
 {
+    protected $publicId;
     
+    public function __set($name, $value)
+    {
+        $this->$name = $value;
+    }
 }

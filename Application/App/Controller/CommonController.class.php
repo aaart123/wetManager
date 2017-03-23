@@ -40,12 +40,13 @@ class CommonController extends WeichatApiController
         $post = I('post.');
         if ($appData = $this->checkSign($post)) {
             $keys = $this->publicKeyModel->getKeysApp($post['media_id'], $appData['appId'], 'app');
+            $keyword = '';
             foreach ($keys as $key) {
                 $keyword .= $key['keyword'].',';
             }
             $keyword = rtrim($keyword, ',');
             $appData['keyword'] = $keyword;
-            echo json_encode($dappData);
+            echo json_encode($appData);
             exit;
         }
     }

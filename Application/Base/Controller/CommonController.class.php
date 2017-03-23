@@ -97,7 +97,6 @@ class CommonController extends BaseController
         $this->appModel = D('Base/App');
         $this->textModel = D('Base/text');
         $this->openidModel = D('Base/UserOpenid');
-        // $this->eventModel = D('Base/Event');
         $this->wxBizMsgCrypt = new \Common\Common\wxBizMsgCrypt(C('TOKEN'), C('ENCODINGAESKEY'), C('COMPONENT_APPID'));
     }
 }

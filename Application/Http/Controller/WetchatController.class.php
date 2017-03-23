@@ -3,6 +3,7 @@ namespace Http\Controller;
 
 use Http\Controller\BaseController;
 use Base\Controller\WetchatApiController;
+use Event\Controller\MenuController;
 
 use Base\Model\NewsModel;
 use Base\Model\MediaModel;
@@ -10,6 +11,7 @@ use Base\Model\MediaModel;
 class WetchatController extends BaseController
 {
     private $wetApi;
+    private $menuActivity;
     private $publicId;
     private $newsModel;
     private $mediaModel;
@@ -21,6 +23,7 @@ class WetchatController extends BaseController
         $this->wetApi = new WetchatApiController();
         $this->newsModel = new NewsModel();
         $this->mediaModel = new MediaModel();
+        $this->menuActivity = new MenuController($this->publicId);
         $this->mediaModel->publicId = $this->publicId;
         $this->newsModel->publicId = $this->publicId;
         $this->wetApi->publicId = $this->publicId;
@@ -30,7 +33,7 @@ class WetchatController extends BaseController
     {
         // 获取菜单信息
             // http://www.koudaidaxue.com/index.php/http/wetchat/getMenu
-        $data = $this->wetApi->getMenuInfo();
+        $data = $this->menuActivity->getMenuEvent();
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $data
@@ -43,36 +46,57 @@ class WetchatController extends BaseController
         $post = I('post.');
         // 创建菜单
             // http://www.koudaidaxue.com/index.php/http/wetchat/createMenu
-            // Array
-            // (
-            //     [button] => Array
-            //         (
-            //             [0] => Array
-            //                 (
-            //                     [name] => 菜单
-            //                     [sub_button] => Array
-            //                         (
-            //                             [0] => Array
-            //                                 (
-            //                                     [type] => view
-            //                                     [name] => 搜索
-            //                                     [url] => http://www.soso.com/
-            //                                 )
-
-            //                             [1] => Array
-            //                                 (
-            //                                     [type] => view
-            //                                     [name] => 视频
-            //                                     [url] => http://v.qq.com/
-            //                                 )
-            //                         )
-            //                 )
-            //         )
-            // )
-        $post = json_encode($post);
-        $data = $this->createMenu($post);
+            // $post = [
+            //     "button" => [
+            //         "0" => [
+            //             "name" => "菜单",
+            //             "sub_button" => [
+            //                 "0" => [
+            //                     "type" => "view",
+            //                     "name" => "搜索",
+            //                     "url" => "http://www.soso.com/"
+            //                 ],
+            //                 "1" => [
+            //                     "type" => "view",
+            //                     "name" => "视频",
+            //                     "url" => "http://v.qq.com/"
+            //                 ]
+            //             ]
+            //         ]
+            //     ]
+            // ];
+        $menu = json_encode($post);
+        $data = $this->createMenu($menu);
         echo josn_encode($data);
         exit;
+    }
+
+    public function addMenu()
+    {
+        $post = I('post.');
+        // 添加菜单项
+            // http://www.koudaidaxue.com/index.php/http/wetchat/addMenu
+            $post = [
+                'event' => 'click',
+                'key' => 'key_11334',
+                'strategyId' => '1',
+                'type' => 'news'
+            ];
+            $menuActivity = new MenuController();
+            $menuActivity->publicId = $this->publicId;
+            if ($menuActivity->createMenuEvent($post)) {
+                echo json_encode([
+                'errcode' => 0,
+                'errmsg' => '成功'
+                ]);
+                exit;
+            } else {
+                echo json_encode([
+                'errcode' => 1002,
+                'errmsg' => '失败'
+                ]);
+                exit;
+            }
     }
 
     public function syncMaterial($type)
@@ -264,5 +288,4 @@ class WetchatController extends BaseController
             exit;
         }
     }
-    
 }
