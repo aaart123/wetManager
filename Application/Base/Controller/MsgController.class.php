@@ -35,7 +35,7 @@ class MsgController extends CommonController
     {
         switch ($param['MsgType']) {
             case 'text':    # 文本消息
-                return $this->distribute($param);
+                return $this->distributeMsg($param);
             case 'image':   # 图片消息
                 return;
             case 'voice':   # 语音消息
@@ -73,7 +73,7 @@ class MsgController extends CommonController
      * 消息依次分发
      * @param array 消息体数组
      */
-    private function distribute($param)
+    private function distributeMsg($param)
     {
         if ($keys = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'text')) {
             $this->distributeText($param, $keys);
@@ -91,9 +91,10 @@ class MsgController extends CommonController
      */
     private function distributeEvent($param)
     {
-        if ($keys = $this->eventModel->getEventStrategy($param['ToUserName'], $param['event'], 'text')) {
+        $eventKey = isset($param['EventKey']) ? $param['EventKey'] : '';
+        if ($keys = $this->eventModel->getEventStrategy($param['ToUserName'], $param['Event'], $eventKey, 'text')) {
             $this->distributeText($param, $keys);
-        } elseif ($appMsg = $this->eventModel->getEventStrategy($param['ToUserName'], $param['event'], 'app')) {
+        } elseif ($appMsg = $this->eventModel->getEventStrategy($param['ToUserName'], $param['Event'], $eventKey, 'app')) {
             $this->distributeApp($param, $appMsg);
         } else {
             echo 'success';

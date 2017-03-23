@@ -73,9 +73,10 @@ class EventModel extends BaseModel
      * 获取公众号事件策略
      * @param str 公众号id
      * @param str 事件
+     * @param str 事件key
      * @return arr 事件数组
      */
-    public function getEventStrategy($publicId, $event, $type = '')
+    public function getEventStrategy($publicId, $event, $eventKey, $type = '')
     {
         $where = [
             'public_id' => $publicId,
