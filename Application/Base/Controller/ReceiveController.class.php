@@ -74,13 +74,13 @@ class ReceiveController extends OauthApiController
     {
         $errCode = $this->decryptMsg($msg);
         // fil
-        $msg = '<xml><ToUserName><![CDATA[gh_19fb1bed539e]]></ToUserName>
-            <FromUserName><![CDATA[oIFqdt9TSj1p-ZB1n2NMeyrkD88o]]></FromUserName>
-            <CreateTime>1490256171</CreateTime>
-            <MsgType><![CDATA[text]]></MsgType>
-            <Content><![CDATA[关键字]]></Content>
-            <MsgId>6400601517522745735</MsgId>
-            </xml>';
+        // $msg = '<xml><ToUserName><![CDATA[gh_19fb1bed539e]]></ToUserName>
+        //     <FromUserName><![CDATA[oIFqdt9TSj1p-ZB1n2NMeyrkD88o]]></FromUserName>
+        //     <CreateTime>1490256171</CreateTime>
+        //     <MsgType><![CDATA[text]]></MsgType>
+        //     <Content><![CDATA[关键字]]></Content>
+        //     <MsgId>6400601517522745735</MsgId>
+        //     </xml>';
         $errCode = 0;
         if ($errCode == 0) {
             $param = xml2Arr($msg);

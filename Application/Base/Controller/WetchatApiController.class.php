@@ -139,9 +139,8 @@ class WetchatApiController extends BaseController
     public function createMenu($data)
     {
         $token = $this->getAccessToken();
-        $url = " https://api.weixin.qq.com/cgi-bin/menu/create?access_token={$token}";
-        $data = json_decode(httpRequest($url, $data), true);
-        return $data;
+        $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token={$token}";
+        return httpRequest($url, $data);
     }
 
     /**

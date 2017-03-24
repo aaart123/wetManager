@@ -38,9 +38,7 @@ class MessageController extends CommonController
         if (empty($keyMsg['msg']) || empty($keyMsg['key'])) {
             return false;
         }
-        $data = [
-            'msg' => $keyMsg['msg']
-            ];
+        $data['msg'] = $keyMsg['msg'];
         $textId = $this->textModel->addData($data);
         $data = [
             'public_id' => $publicId,
@@ -51,4 +49,37 @@ class MessageController extends CommonController
         $keyId = $this->publicKeyModel->addData($data);
         return $keyId;
     }
+
+    /**
+     * 更新关键字
+     * @param array 数组
+     */
+    public function updateKey($data)
+    {
+        $where['keyId'] = $data['keyId'];
+        unset($data['keyId']);
+        $data['msg'] = $keyMsg['msg'];
+        $textId = $this->textModel->addData($data);
+        $data['strategy_id'] = $textId;
+        if ($this->publicKeyModel->updateData($where, $data)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 删除关键词
+     * @param int keyId
+     */
+    public function deleteText($keyId)
+    {
+        $where['keyId'] = $keyId;
+        if ($this->publicKeyModel->deleteKey($where)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }

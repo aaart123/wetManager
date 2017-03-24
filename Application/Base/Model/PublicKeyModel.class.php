@@ -52,7 +52,17 @@ class PublicKeyModel extends BaseModel
         $keys = $this->where($where)->select();
         return $this->parseFieldsMap($keys);
     }
-    
+
+    /**
+     * @param $publicId
+     * @param $appId
+     * @return mixed
+     */
+    public function getAppKeywords($publicId, $appId)
+    {
+        return $this->where(array('strategy_id'=>$appId,'type'=>'app','public_id'=>$publicId))->getfield('keyword', true);
+    }
+
     /**
      * 获取策略的关键字
      * @param str 公众号id
@@ -108,9 +118,6 @@ class PublicKeyModel extends BaseModel
      */
     public function updateData($where, $keyword)
     {
-        $data = [
-            'keyword' => $keyword
-        ];
         !$this->create($data) && E('数据更新失败');
         return $this->where($where)->save();
     }

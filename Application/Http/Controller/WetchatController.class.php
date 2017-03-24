@@ -62,10 +62,10 @@ class WetchatController extends AuthController
             //         ]
             //     ]
             // ];
-        $menu = json_encode($post);
-        $data = $this->createMenu($menu);
-        echo josn_encode($data);
-        exit;
+        $menu = json_encode($post, JSON_UNESCAPED_UNICODE);
+        $data = $this->wetApi->createMenu($menu);  
+        echo $data;
+        exit; 
     }
 
     public function addMenu()
@@ -76,7 +76,7 @@ class WetchatController extends AuthController
             // $post = [
             //     'event' => 'click',
             //     'key' => '生日蛋糕',
-            //     'strategy_id' => 1,
+            //     'strategy_id' => 1, 
             //     'type' => 'news'
             // ];
         $menuActivity = new MenuController();

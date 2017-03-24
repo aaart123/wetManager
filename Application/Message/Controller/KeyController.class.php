@@ -23,20 +23,19 @@ class KeyController extends BaseController
         $keys = $this->publicKeyModel->getKeys($publicId, 'text');
         $msg = array();
         foreach ($keys as $key) {
-            $datas = $this->publicKeyModel->getKeyStrategy($publicId, $key['keyword'], 'text');
-            foreach ($datas as $data) {
-                $data1 = $this->textModel->getData($data['strategyId']);
-                $msg[] = array_merge($data, $data1);
-            }
+            $data = $this->publicKeyModel->getKeyStrategy($publicId, $key['keyword'], 'text');
+            $textData = $this->textModel->getData($data['strategyId']);
+            $data['info'] = $textData;
+            $msg[] = $data;
         }
         $apps = $this->publicKeyModel->getKeys($publicId, 'app');
         foreach ($apps as $app) {
-            $datas = $this->publicKeyModel->getKeyStrategy($publicId, $app['keyword'], 'app');
-            foreach ($datas as $data) {
-                $data1 = $this->appModel->getData($data['strategyId']);
-                $msg[] = array_merge($data, $data1);
-            }
+            $data = $this->publicKeyModel->getKeyStrategy($publicId, $app['keyword'], 'app');
+            $appData = $this->appModel->getData($data['strategyId']);
+            $data['info'] = $appData;
+            $msg[] = $data;
         }
         return $msg;
     }
+
 }
