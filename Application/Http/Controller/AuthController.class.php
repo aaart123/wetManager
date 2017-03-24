@@ -14,9 +14,13 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        session('plat_public_id', 'gh_19fb1bed539e');
-        if (!session('plat_public_id')) {
-            echo "<script>alert('用户尚未登陆!');</script>";
+        // session('plat_public_id', 'gh_19fb1bed539e');
+        $access = session('plat_public_id');
+        if (empty($access)) {
+            echo json_encode([
+                'errcode' => -1,
+                'errmsg' => '尚未有授权的公众号'
+            ]);
             exit;
         }
         parent::__construct();

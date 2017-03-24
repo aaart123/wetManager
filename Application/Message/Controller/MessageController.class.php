@@ -56,10 +56,11 @@ class MessageController extends CommonController
      */
     public function updateKey($data)
     {
-        $where['keyId'] = $data['keyId'];
+        $where['key_id'] = $data['keyId'];
+        $add['msg'] = $data['msg'];
         unset($data['keyId']);
-        $data['msg'] = $keyMsg['msg'];
-        $textId = $this->textModel->addData($data);
+        unset($data['msg']);
+        $textId = $this->textModel->addData($add);
         $data['strategy_id'] = $textId;
         if ($this->publicKeyModel->updateData($where, $data)) {
             return true;
@@ -74,7 +75,7 @@ class MessageController extends CommonController
      */
     public function deleteText($keyId)
     {
-        $where['keyId'] = $keyId;
+        $where['key_id'] = $keyId;
         if ($this->publicKeyModel->deleteKey($where)) {
             return true;
         } else {

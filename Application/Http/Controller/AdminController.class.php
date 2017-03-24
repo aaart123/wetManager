@@ -158,7 +158,7 @@ class AdminController extends AuthController
     public function deleteText($keyId)
     {
         // 删除回复关键字
-            // http://www.koudaidaxue.com/index.php/http/admin/deleteText?keyId=1
+            // http://www.koudaidaxue.com/index.php/http/admin/deleteText?keyId=33
         if ($this->msgActivity->deleteText($keyId)) {
             echo json_encode([
                 'errcode' => 0,
@@ -174,10 +174,11 @@ class AdminController extends AuthController
 
     public function updateKey()
     {
+        $data = I('post.');
         // 修改回复关键字
             // http://www.koudaidaxue.com/index.php/http/admin/updateKey
             // $data = [
-            //     'keyId' => 1,
+            //     'keyId' => 36,
             //     'keyword' => '更改关键字',
             //     'isEqual' => 1,
             //     'msg' => '更改后的回复',

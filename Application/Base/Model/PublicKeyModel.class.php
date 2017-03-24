@@ -116,7 +116,7 @@ class PublicKeyModel extends BaseModel
      * @param arr 条件数组
      * @param str 关键字
      */
-    public function updateData($where, $keyword)
+    public function updateData($where, $data)
     {
         !$this->create($data) && E('数据更新失败');
         return $this->where($where)->save();

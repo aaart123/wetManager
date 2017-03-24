@@ -44,6 +44,7 @@ class AppModel extends BaseModel
         } else {
             $apps = $this->where($where)->select();
         }
+        $apps = $this->parseFieldsMap($apps);
         return $apps;
     }
 

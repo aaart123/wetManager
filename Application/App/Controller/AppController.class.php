@@ -1,12 +1,12 @@
 <?php
 namespace App\Controller;
 
-use Base\Controller\CommonController;
+use Base\Controller\BaseController;
 
 /**
  * 应用处理类
  */
-class AppController extends CommonController
+class AppController extends BaseController
 {
 
     public function __construct()
@@ -72,6 +72,17 @@ class AppController extends CommonController
     }
 
     /**
+     * 获取管理员设置的应用的关键字
+     * @param $publicId
+     * @param $appId
+     * @return mixed
+     */
+    public function getAppKeywords($publicId, $appId)
+    {
+        return $this->publicKeyModel->getAppKeywords($publicId, $appId);
+    }
+
+    /**
      * 添加应用配置
      * @param str 公众号id
      * @param arr 配置数组
@@ -94,9 +105,9 @@ class AppController extends CommonController
     /**
      * 获取所有应用列表
      */
-    public function getAppList()
+    public function getAppList($array = array())
     {
-        $appList = $this->appModel->getAppList();
+        $appList = $this->appModel->getAppList($array);
         return $appList;
     }
 
@@ -119,23 +130,35 @@ class AppController extends CommonController
         }
     }
 
+
+
+
     /**
      * 处理app应用消息
      * @param array 关键字数组
      * @return xmlstring 转发回调消息
      */
-    private function distributeApp($param, $key)
+    public function distributeApp($param, $key)
     {
-        if ($appData = $this->appModel->getAppData($key['strategyId'])) {
+        if ($appData = $this->appModel->getData($key['strategyId'])) {
             switch ($appData['type']) {
                 case 1: # 消息回复类应用
                     $url = $appData['url'].'?type=trigger&media_id='.$param['ToUserName'];
                     $data = arr2Xml($param);
                     $header = array('content-type: application/xml');
                     $response = httpRequest($url, $data, $header);
-                    $this->sendMsg($response);
+                    return $response;
             }
         }
     }
+
+
+
+
+
+
+
+
+
 
 }
