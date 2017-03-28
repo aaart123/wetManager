@@ -99,7 +99,7 @@ class BaseController extends Controller
         $this->eventModel = D('Base/event');
         $this->mediaModel = D('Base/media');
         $this->newsModel = D('Base/news');
-        $this->publicKey = D('Base/publicKey');
+        $this->publicKeyModel = D('Base/publicKey');
         $this->textModel = D('Base/text');
     }
 

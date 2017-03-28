@@ -21,9 +21,19 @@ class LoginController extends Controller
     {
         if($_SESSION['plat_user_id'])
         {
+            $userId = $_SESSION['plat_user_id'];
+            if($publicId = D('Base/User')->where(array('user_id'=>$userId))->getfield('login_public'))
+            {
+                $_SESSION['plat_public_id'] = $publicId;
+            }else{
+                $publicList = A('User/PublicUser')->getPublic($userId);
+                D('Base/User')->where(array('user_id'=>$userId))->setfield('login_public',$publicList[0]['public_id']);
+                $_SESSION['plat_public_id'] = $publicList[0]['public_id'];
+            }
+
             echo json_encode(array(
                 'errcode'=>0,
-                'errmsg'=>$_SESSION['plat_user_id'],
+                'errmsg'=>$userId,
             ));exit();
         }else{
             echo json_encode(array(
@@ -35,23 +45,11 @@ class LoginController extends Controller
 
 
     /**
-     * 退出账户
+     * 注销账户
      */
     public function logout()
     {
-        unset($_SESSION['plat_user_id']);
-        if(!isset($_SESSION['plat_user_id']))
-        {
-            echo json_encode(array(
-                'errcode'=>0,
-                'errmsg'=>'退出成功！',
-            ));exit();
-        }else{
-            echo json_encode(array(
-                'errcode'=>1000,
-                'errmsg'=>'退出失败！',
-            ));exit();
-        }
+        session_unset();
     }
 
 

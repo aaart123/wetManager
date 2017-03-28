@@ -9,7 +9,6 @@ use Base\Controller\WetchatApiController;
  */
 class MenuController extends BaseController
 {
-
     private $wetApi;
 
     public function __construct()

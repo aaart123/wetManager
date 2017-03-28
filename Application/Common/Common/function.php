@@ -26,6 +26,10 @@ function httpRequest($url, $data = null, $header = array())
     return $output;
 }
 
+
+
+
+
 /**
  * http请求
  * @param unknown $url

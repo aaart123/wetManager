@@ -7,10 +7,15 @@ class AppModel extends BaseModel
 {
     protected $trueTableName = 'kdgx_plat_app';
 
-    protected $_map = [
-        'appId' => 'app_id',
-        'openUrl' => 'open_url'
-    ];
+    protected $_map = array(
+        'appId'         =>  'app_id',
+        'createTime'    =>  'create_time',
+        'modifiedTime'  =>  'modified_time',
+        'apiKey'        =>  'api_key',
+        'apiSecret'     =>  'api_secret',
+        'previewImg'    =>  'preview_img',
+        'openUrl'       =>  'open_url',
+    );
 
     public function __construct()
     {

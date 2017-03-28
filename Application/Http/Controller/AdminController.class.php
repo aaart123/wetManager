@@ -10,16 +10,7 @@ class AdminController extends AuthController
     {
         parent::__construct();
     }
-
-    public function test()
-    {
-        $data = D('Base/publicKey')->getKeys($this->publicId, 'text');
-        var_dump($data);
-        echo '<hr/>';
-        $datas = D('Base/publicKey')->getKeyStrategy($this->publicId, '关键字', 'text');
-        var_dump($datas);
-    }
-
+    
 
 /**-------------------------------------------事件列表--------------------------------------------------------*/
 

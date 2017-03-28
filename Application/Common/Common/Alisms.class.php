@@ -1,5 +1,5 @@
 <?php
-namespace Home\Common;
+namespace Common\Common;
 /**
  * 阿里云短信接口
  * 示例
@@ -11,7 +11,9 @@ namespace Home\Common;
  *	   print_r($re);
  *
  */
-class Alisms{
+
+class Alisms
+{
 	private $config = array(
 	      'Format'  =>'json', //返回值的类型，支持JSON与XML。默认为XML
 	      'Version' =>'2016-09-27', //API版本号，为日期形式：YYYY-MM-DD，本版本对应为2016-09-27
@@ -32,7 +34,7 @@ class Alisms{
 	function __construct($accessKeyId,$accessKeySecret){
 		 $this->config['AccessKeyId'] = $accessKeyId;
 		 $this->AccessKeySecret = $accessKeySecret;
-     $this->signName = C('SMS_SIGN_NAME'); 
+     $this->signName = '口袋高校';
 	} 
 	/**
 		*发送短信

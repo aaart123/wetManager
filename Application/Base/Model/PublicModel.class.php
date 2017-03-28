@@ -1,7 +1,7 @@
 <?php
 namespace Base\Model;
 
-use Base\Model\PublicModel;
+use Base\Model\BaseModel;
 
 class PublicModel extends BaseModel
 {
@@ -21,7 +21,7 @@ class PublicModel extends BaseModel
         return $this->add('', '', true);
     }
 
-    public function getData()
+    public function getData($where)
     {
         $data = $this->where($where)->find();
         return $this->parseFieldsMap($data);

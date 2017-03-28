@@ -37,5 +37,4 @@ class KeyController extends BaseController
         }
         return $msg;
     }
-
 }

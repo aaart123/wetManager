@@ -43,10 +43,10 @@ class UserController extends BaseController
     public function getWechatUserInfo()
     {
         $userId = $_SESSION['plat_user_id'];
-        $userInfo = A('User/User')->getUserInfo($userId);
-        if( $userInfo['openid'] )
+        $openId = D('Base/User')->where(array('user_id'=>$userId))->getfield('openid');
+        if( $openId )
         {
-            if( $data = A('User/user')->getWechatUserInfo($userInfo['openid']) )
+            if( $data = A('User/user')->getWechatUserInfo($openId) )
             {
                 echo json_encode(array(
                     'errcode'=>0,
@@ -80,9 +80,8 @@ class UserController extends BaseController
        
         if( $data = A('User/PublicUser')->getPublic($_SESSION['plat_user_id']) )
         {
-
             foreach ($data as &$value) {
-                $value = D('User/Public')->getPublicInfo($value['public_id']);
+                $value = D('Base/Public')->where(array('user_name'=>$value['public_id']))->find();
             }
             echo json_encode(array(
                 'errcode'=>0,
@@ -105,11 +104,12 @@ class UserController extends BaseController
     {
         $publicId = $_SESSION['plat_public_id'];
         $userId = $_SESSION['plat_user_id'];
-        if( D('User/PublicUser')->isPublicAdmin($publicId, $userId) )
+        if( D('Base/PublicUser')->isPublicAdmin($publicId, $userId) )
         {
+            $data = D('Base/Public')->where(array('user_name'=>$publicId))->find();
             echo json_encode(array(
                 'errcode'=>0,
-                'errmsg'=>D('User/Public')->getPublicInfo($publicId),
+                'errmsg'=>$data
             ));exit();
         }else {
             echo json_encode(array(
@@ -126,10 +126,17 @@ class UserController extends BaseController
     {
         if( A('User/PublicUser')->isPublicAdmin($_POST['public_id'], $_SESSION['plat_user_id']) )
         {
+            D('Base/User')->where(array('user_id'=> $_SESSION['plat_user_id']))->setfield('login_public',$_POST['public_id']);
             $_SESSION['plat_public_id'] = $_POST['public_id'];
-            echo json_encode(array('errcode'=>0,'errmsg'=>'请求成功！'));exit();
+            echo json_encode(array(
+                'errcode'=>0,
+                'errmsg'=>'请求成功！'
+            ));exit();
         }else{
-            echo json_encode(array('errcode'=>1000,''=>'非公众号管理员！'));exit();
+            echo json_encode(array(
+                'errcode'=>1000,
+                'errmsg'=>'非公众号管理员！'
+            ));exit();
         }
     }
 
@@ -145,16 +152,16 @@ class UserController extends BaseController
      */
     Public function setPublicAdminMain($publicId, $userId)
     {
-        if( D('User/PublicUser')->isPublicAdmin($publicId, $userId) )
+        if( D('Base/PublicUser')->isPublicAdmin($publicId, $userId) )
         {
-            if( D('User/PublicUser')->isPublicAdminMain($publicId, $userId) )
+            if( D('Base/PublicUser')->isPublicAdminMain($publicId, $userId) )
             {
                 echo json_encode(array(
                     'errcode'=>10011,
                     'errmsg'=>'已是主管理员!'
                 ));exit();
             }else{
-                if( D('User/PublicUser')->setPublicAdminMain($publicId, $userId) )
+                if( D('Base/PublicUser')->setPublicAdminMain($publicId, $userId) )
                 {
                     echo json_encode(array(
                         'errcode'=>0,
@@ -176,21 +183,25 @@ class UserController extends BaseController
     }
 
 
+    /**
+     * 获取公众号的所有管理员
+     */
     public function getPublicAdmin()
     {
         $publicId = $_SESSION['plat_public_id'];
         $adminList = A('User/PublicUser')->getPublicAdmin($publicId);
-        $adminList = explode(',', $adminList);
-        foreach($adminList as $value)
+        $adminList = explode(',',$adminList);
+        $publicAdmin = array();
+        foreach($adminList as $userId )
         {
-            $publicAdmin = null;
-            $data = A('User/User')->where(array('public_id'=>$value))->find();
-            if(A('User/PublicUser')->isPublicAdmin($publicId,$value))
+            $data = D('Base/User')->field(array('phone','user_id'))->where(array('user_id'=>$userId))->find();
+            $data = D('Base/User')->parseFieldsMap($data);
+            if(D('Base/PublicUser')->isPublicAdminMain($publicId,$userId))
             {
-                array_push($data,array('is_main'=>1));
+                $data = array_merge($data,array('is_main'=>1));
                 array_unshift($publicAdmin,$data);
             }else{
-                array_push($data,array('is_main'=>0));
+                $data = array_merge($data,array('is_main'=>0));
                 array_push($publicAdmin,$data);
             }
         }
@@ -198,8 +209,6 @@ class UserController extends BaseController
                 'errcode'=>0,
                 'errmsg'=>$publicAdmin,
             ));exit();
-
-
     }
 
 

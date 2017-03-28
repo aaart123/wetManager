@@ -3,57 +3,88 @@ namespace User\Controller;
 
 use Base\Controller\BaseController;
 
-class PublicUserController extends Controller
+class PublicUserController extends BaseController
 {
+
+    /*----------------------------------------*\
+            管理员管理的公众号信息
+    \*----------------------------------------*/
+
+    /**
+     * 获取用户所管理的所有公众号
+     * @param $userId
+     * @return mixed
+     */
+    public function getPublic($userId)
+    {
+        return D('Base/PublicUser')->getPublic($userId);
+    }
 
 
     /**
-     * 获取公众号信息
+     * 添加公众号管理员
+     * @param $publicId
+     * @param $userId
+     * @return mixed
+     */
+    public function addPublicList($publicId, $userId)
+    {
+        echo $publicId.$userId;
+        if( $this->isPublicAdmin($publicId, $userId) )
+        {
+            return false;
+        }else{
+            if( $userList = D('Base/PublicUser')->getPublicAdmin($publicId))
+            {
+                $userList = $userList.','.$userId;
+                return D('Base/PublicUser')->setPublicList($publicId, $userList);
+            }else{
+                return D('Base/PublicUser')->addPublicList($publicId, $userId);
+            }
+        }
+    }
+
+
+
+
+
+
+    /*-----------------------------------------*\
+                  公众号所对应的信息
+    \*-----------------------------------------*/
+
+    /**
+     * 获取公众号所有的管理员
      * @param $publicId
      * @return mixed
      */
-    Public function getPublicInfo($publicId, $userId)
+    public function getPublicAdmin($publicId)
     {
-        if( D('User/PublicUser')->isPublicAdmin($publicId, $userId) )
-        {
-            return array(
-                'errcode'=>0,
-                'errmsg'=>D('User/Public')->getPublicInfo($publicId),
-            );
-        }else{
-            return array('errcode'=>10010,'errmsg'=>'非公众号管理员！');
-        }
+        return D('Base/PublicUser')->getPublicAdmin($publicId);
     }
 
-
-    /***
-     * 设置主管理员
-     * @param $publicId
-     * @param $userId
-     * @return array
+    /**
+     * 验证是否为公众号管理员
+     * @param $publicId  公众号ID
+     * @param $userId   用户ID
+     * @return mixed
      */
-    Public function setPublicAdminMain($publicId, $userId)
+    public function isPublicAdmin($publicId, $userId)
     {
-        if( D('User/PublicUser')->isPublicAdmin($publicId, $userId) )
-        {
-            if( D('User/PublicUser')->isPublicAdminMain($publicId, $userId) )
-            {
-                return array('errcode'=>10011,'errmsg'=>'已是主管理员');
-            }else{
-                if( D('User/PublicUser')->setPublicAdminMain($publicId, $userId) )
-                {
-                    return array('errcode'=>0,'errmsg'=>'请求成功！');
-                }else{
-                    return array('errcode'=>-1,'errmsg'=>'网络错误！');
-                }
-            }
-
-        }else{
-            return array('errcode'=>10010,'errmsg'=>'非公众号管理员！');
-        }
+        return D('Base/PublicUser')->isPublicAdmin($publicId, $userId);
     }
 
 
+    /**
+     * 修改最新的Token
+     * @param $openid
+     * @param $access_token
+     * @return mixed
+     */
+    public function setToken($openid, $access_token, $refresh_token)
+    {
+        return D('Base/Token')->setToken($openid, $access_token, $refresh_token);
+    }
 
 
 
