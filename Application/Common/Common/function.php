@@ -156,3 +156,20 @@ function getRandomStr()
     }
     return $str;
 }
+
+
+/**
+ * 上传base64位图片
+ */
+function base64Img($base, $rootPath)
+{
+    $cfg['rootPath'] = $rootPath;
+    $upload = new \Org\Util\UploadBase64($cfg);
+    $info = $upload->upload($base);
+    if (empty($info)) {
+        return false;
+    } else {
+        $info = substr($info, 1);
+        return $info;
+    }
+}

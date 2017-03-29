@@ -15,6 +15,12 @@ class MessageController extends CommonController
         parent::__construct();
     }
 
+    public function caseText($param, $content)
+    {
+        $msg = sprintf($this->msgTemplate['text'], $param['FromUserName'], $param['ToUserName'], time(), $content);
+        return $msg;
+    }
+
     /**
      * 文本消息分发
      * @param array 关键字数组

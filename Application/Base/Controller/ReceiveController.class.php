@@ -19,7 +19,7 @@ class ReceiveController extends OauthApiController
         $this->wxBizMsgCrypt = new \Common\Common\wxBizMsgCrypt(C('TOKEN'), C('ENCODINGAESKEY'), C('COMPONENT_APPID'));
     }
 
-    // 授权事件接收URL
+    // ticket组件/授权/取消授权事件通知接口
     public function Auth()
     {
         $msg = ''; // 第三方收到公众平台发送的消息
@@ -27,7 +27,7 @@ class ReceiveController extends OauthApiController
         if ($errCode == 0) {
             $param = xml2Arr($msg);
             switch ($param['InfoType']) {
-                case 'component_verify_ticket':     // 授权凭证
+                case 'component_verify_ticket':     // ticket组件授权凭证
                     $component_verify_ticket = $param['ComponentVerifyTicket'];
                     $ret['component_verify_ticket'] = $component_verify_ticket;
                     file_put_contents('component_verify_ticket', $component_verify_ticket);     // 缓存
@@ -59,7 +59,7 @@ class ReceiveController extends OauthApiController
                     }
                     break;
             }
-            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+            echo 'success';
             exit();
         } else {
             echo '<xml><return_code><![CDATA[FAILED]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
@@ -73,7 +73,7 @@ class ReceiveController extends OauthApiController
     public function Eventmessage()
     {
         $errCode = $this->decryptMsg($msg);
-        // $msg = '<xml><ToUserName><![CDATA[gh_19fb1bed539e]]></ToUserName>
+        // $msg = '<xml><ToUserName><![CDATA[gh_19fb1bed539e]]></ToUserName
             // <FromUserName><![CDATA[oIFqdt9TSj1p-ZB1n2NMeyrkD88o]]></FromUserName>
             // <CreateTime>1490256171</CreateTime>
             // <MsgType><![CDATA[text]]></MsgType>

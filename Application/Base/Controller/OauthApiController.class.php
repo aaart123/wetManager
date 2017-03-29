@@ -67,7 +67,7 @@ class OauthApiController extends BaseController
         return $ret['pre_auth_code'];
     }
 
-    // 获取公众号的接口调用凭据authorizer_access_token
+    // 获取公众号的接口调用凭据和授权信息authorizer_access_token
     public function getAuths($authorizer_appid)
     {
         $auth_info = M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$authorizer_appid))->find();

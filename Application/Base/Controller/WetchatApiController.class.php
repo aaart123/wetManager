@@ -31,10 +31,30 @@ class WetchatApiController extends BaseController
     }
 
 /********************************************  消息管理API   ***********************************************************/
+    public function casekfMessage()
+    {
+        $param = file_get_contents('kf.log');
+        $param = json_decode($param, true);
+        $auth_code = trim(str_replace("QUERY_AUTH_CODE:","",$param['Content']));
+        $token = file_get_contents('case.log');
+        $token = json_decode($token, true);
+        $data = [
+            'touser'=>$param['FromUserName'],
+            'msgtype'=>'text',
+            'text'=>[
+                'content'=>$auth_code.'_from_api'
+            ]
+        ];
+        $data = json_encode($data);
+        $authorizer_access_token = $token['authorization_info']['authorizer_access_token'];
+        $url = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={$authorizer_access_token}";
+        $response = json_decode(httpRequest($url, $data), true);
+        print_r($response);
+    }
+
     // 发送客服消息
     public function sendKfMessage($authorizer_appid, $data)
     {
-        $authorizer_access_token = $this->getAuths($authorizer_appid);
         $publicInfo = $this->getPublicInfo($authorizer_appid);
         $func_info = explode(',', $publicInfo['func_info']);
         if (!in_array('1', $func_info)) {
