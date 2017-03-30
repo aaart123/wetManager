@@ -139,4 +139,16 @@ class BaseController extends Controller
             exit($str);
         }
     }
+
+    /**
+     * 过滤字段
+     * @param int 数组地址
+     * @param array
+     */
+    protected function unsetField(&$param, $fields)
+    {
+        foreach ($fields as $field) {
+            unset($param[$field]);
+        }
+    }
 }

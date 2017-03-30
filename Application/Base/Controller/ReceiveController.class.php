@@ -130,7 +130,7 @@ class ReceiveController extends OauthApiController
         $plat_user_id = session('plat_user_id');
         if (!empty($plat_user_id)) {
             A('User/PublicUser')->addPublicList($publicInfo['user_name'], $plat_user_id);
-            D('User/PublicUser')->setPublicAdminMain($publicInfo['user_name'], $plat_user_id);
+            D('Base/PublicUser')->setPublicAdminMain($publicInfo['user_name'], $plat_user_id);
         }
         $this->urlRedirect(U('Home/Index/Index'));
     }

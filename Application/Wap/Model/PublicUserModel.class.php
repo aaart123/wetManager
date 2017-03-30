@@ -13,4 +13,9 @@ use Wap\Model\BaseModel;
 class PublicUserModel extends BaseModel
 {
     protected $tableName='kdgx_plat_public_user';
+
+
+
+
+
 }

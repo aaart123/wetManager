@@ -3,16 +3,16 @@
  * Created by PhpStorm.
  * User: 李欣
  * Date: 2017/3/28
- * Time: 11:51
+ * Time: 11:57
  */
 
 namespace Wap\Model;
 
 use Wap\Model\BaseModel;
 
-class ArticleModel extends BaseModel
+class CommentModel extends BaseModel
 {
-    protected $tableName = 'kdgx_social_article';
+    protected $tableName = 'kdgx_social_comment';
 
     public function addData($data)
     {
@@ -32,24 +32,23 @@ class ArticleModel extends BaseModel
         return $articles;
     }
 
-    public function getData($article_id)
+    public function getData($comment_id)
     {
         $where['is_delete'] = '0';
-        $where['article_id'] = $article_id;
+        $where['comment_id'] = $comment_id;
         $article = $this->where($where)->find();
         return $article;
     }
 
-    public function Insec($article_id, $field)
+    public function Insec($comment_id, $field)
     {
-        $where['article_id'] = $article_id;
+        $where['comment_id'] = $comment_id;
         return $this->where($where)->setInc($field, 1);
     }
 
-    public function Desec($article_id, $field)
+    public function Desec($comment_id, $field)
     {
-        $where['article_id'] = $article_id;
+        $where['comment_id'] = $comment_id;
         return $this->where($where)->Desec($field, 1);  
     }
-
 }
