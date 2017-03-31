@@ -36,6 +36,7 @@ class ArticleController extends CommonController
             }
             $data['img'] = ltrim($data['img'], ',');
         }
+        unset($data['imgs']);
         if ($article_id = $this->articleModel->addData($data)) {
             return $article_id;
         } else {

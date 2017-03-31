@@ -37,11 +37,6 @@ class MsgController extends CommonController
      */
     public function replyMsg($param)
     {
-        file_put_contents('./msg.log', json_encode($param), FILE_APPEND);
-        // $param = '{"ToUserName":"gh_3c884a361561","FromUserName":"ozy4qt5QUADNXORxCVipKMV9dss0","CreateTime":"1490761416","MsgType":"event","Event":"LOCATION","Latitude":"111.000000","Longitude":"222.000000","Precision":"333.000000"}';
-        // $param = '{"ToUserName":"gh_3c884a361561","FromUserName":"ozy4qt5QUADNXORxCVipKMV9dss0","CreateTime":"1490761398","MsgType":"text","Content":"QUERY_AUTH_CODE:queryauthcode@@@YgE96o8icHEJmFowN-0RmVa7so80ndSob_E_AbuCpSbbc311XcfSEdmElTVQ220IFVwnPpl2DjF7sIPcs6n7Fw","MsgId":"6402771450955784705"}';
-        // $param = '{"ToUserName":"gh_3c884a361561","FromUserName":"ozy4qt5QUADNXORxCVipKMV9dss0","CreateTime":"1490761407","MsgType":"text","Content":"TESTCOMPONENT_MSG_TYPE_TEXT","MsgId":"6402771489610490370"}';
-        // $param = json_decode($param, true);
         switch ($param['MsgType']) {
             case 'text':    # 文本消息
                 return $this->distributeMsg($param);
@@ -79,11 +74,7 @@ class MsgController extends CommonController
         }
     }
 
-    /**
-     * 消息依次分发
-     * @param array 消息体数组
-     */
-    private function distributeMsg($param)
+    private function caseMsg(&$msg)
     {
         if ($param['Content'] == 'TESTCOMPONENT_MSG_TYPE_TEXT') {
             $content = 'TESTCOMPONENT_MSG_TYPE_TEXT_callback';
@@ -91,7 +82,6 @@ class MsgController extends CommonController
             $replayMsg = $message->caseText($param, $content);
             $this->sendMsg($replayMsg);
         }
-
         echo '';
         file_put_contents('./kf.log', json_encode($param));
         $wetchatApi = new \Base\Controller\WetchatApiController();
@@ -108,7 +98,14 @@ class MsgController extends CommonController
         $response = httpRequest($url, $data);
         file_put_contents('./case.log', $response);
         exit;
-        
+    }
+
+    /**
+     * 消息依次分发
+     * @param array 消息体数组
+     */
+    private function distributeMsg($param)
+    {
         if ($key = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'text')) {
             $message = new MessageController();
             $replayMsg = $message->distributeText($param, $key);
@@ -129,10 +126,6 @@ class MsgController extends CommonController
      */
     private function distributeEvent($param)
     {
-        $content = $param['Event'].'from_callback';
-        $message = new MessageController();
-        $replayMsg = $message->caseText($param, $content);
-        $this->sendMsg($replayMsg);
         $eventKey = isset($param['EventKey']) ? $param['EventKey'] : '';
         if ($keys = $this->eventModel->getEventStrategy($param['ToUserName'], $param['Event'], $eventKey, 'text')) {
             $message = new MessageController();

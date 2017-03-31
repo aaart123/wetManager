@@ -43,12 +43,13 @@ class CommentModel extends RelationModel
     public function addData($data)
     {
         !$this->create($data) && E($this->getError());
-        return $this->add($data);
+        return $this->add();
     }
  
     public function editData($where, $save)
     {
-        return $this->where($where)->save($save);
+        !$this->create($save) && E($this->getError());
+        return $this->where($where)->save();
     }
 
     public function getAll($where = array())

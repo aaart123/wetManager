@@ -10,7 +10,7 @@ use Wap\Controller\CommentController;
 /**
  * 路由管理
  */
-class HttpController extends Controller
+class HttpController extends BaseController
 {
     private $articleActivity;
     private $commentActivity;
@@ -19,7 +19,7 @@ class HttpController extends Controller
     public function __construct()
     {
         parent::__construct();
-        session('plat_user_id', 3);
+        // session('plat_user_id', 3);
         $this->user_id = session('plat_user_id');
         $this->articleActivity = new ArticleController();
         $this->commentActivity = new CommentController();
@@ -57,7 +57,7 @@ class HttpController extends Controller
             //     ],
             //     'url' => 'http://www.外链.com'
             // ];
-        $post['user_id'] = session('plat_user_id');
+        $post['user_id'] = $this->user_id;
         if ($article_id = $this->articleActivity->createArticle($post)) {
             echo json_encode([
             'errcode' => 0,
