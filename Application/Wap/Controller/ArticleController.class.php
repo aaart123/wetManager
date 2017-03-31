@@ -2,7 +2,7 @@
 
 namespace Wap\Controller;
 
-use Base\Controller\BaseController;
+use Wap\Controller\CommonController;
 
 use Wap\Model\ArticleThumbModel;
 
@@ -10,10 +10,11 @@ use Wap\Model\ArticleThumbModel;
  * 圈子文章管理
  */
 
-class ArticleController extends BaseController
+class ArticleController extends CommonController
 {
     private $articleModel;
     private $articleThumbModel;
+    
     public function __construct()
     {
         parent::__construct();
@@ -100,8 +101,7 @@ class ArticleController extends BaseController
     public function getArticle($article_id)
     {
         $article = $this->articleModel->getData($article_id);
-        $imgs = explode(',', $article['img']);
-        $article['imgs'] = $imgs;
+
         $this->dealParam($article);
         return $article;
     }
@@ -113,12 +113,18 @@ class ArticleController extends BaseController
     public function getSelfList($user_id)
     {
         $where['user_id'] = $user_id;
+        $articles = $this->articleModel->getAll($where);
+        foreach ($articles as &$article) {
+            $this->dealParam($article);
+        }
+        return $articles;
     }
 
     /**
-     * 获取加权推荐列表
+     * 获取最新动态列表
+     * @param int 用户
      */
-    public function getWeightList($user_id)
+    public function getNewList($user_id)
     {
         $articles = $this->articleModel->getAll();
         foreach ($articles as &$article) {
@@ -144,22 +150,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * 判断A用户是否关注B
-     * @param int A
-     * @param int B
+     * 获取加权动态列表
+     * @param int 用户
      */
-    public function isSubscribute($user_id, $subcribe)
+    public function getWeightList($user_id)
     {
-        $where = [
-            'user_id' => $user_id,
-            'subscribe_user' => $subcribe,
-            'subscribe_state' => '1'
-        ];
-        if (D('Subscribe')->where($where)->find()) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -168,8 +163,30 @@ class ArticleController extends BaseController
      */
     private function dealParam(&$data)
     {
-        $imgs = explode(',', $data['img']);
-        $data['imgs'] = $imgs;
+        $data['is_thumb'] = 0;
+        $where['comment_id'] = $data['comment_id'];
+        $where['user_id'] = session('plat_user_id');
+        $where['is_delete'] = '0';
+        $this->articleThumbModel->getData($where) && $data['is_thumb'] = 1;
+        $data['user'] = D('UserInfo')->getUserInfo($data['user_id']);
+        if ($user_id == $data['user_id']) {
+            $data['user']['self'] = 1;
+        } else {
+            $data['user']['self'] = 0;
+        }
+        if ($this->isSubscribute($user_id, $data['user']['user_id'])) {
+            $data['user']['subscribe'] = 1;
+        } else {
+            $data['user']['subscribe'] = 0;
+        }
+        $data['imgs'] = [];
+        if (!empty($data['img'])) {
+            $imgs = explode(',', $data['img']);
+            foreach ($imgs as &$img) {
+                $img = 'http://'.C('CDN_SITE').$img;
+            }
+            $data['imgs'] = $imgs;
+        }
         unset($data['modified_time']);
         unset($data['is_delete']);
         unset($data['user_id']);

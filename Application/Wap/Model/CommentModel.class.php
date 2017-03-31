@@ -8,11 +8,37 @@
 
 namespace Wap\Model;
 
-use Wap\Model\BaseModel;
+use Think\Model\RelationModel;
 
-class CommentModel extends BaseModel
+class CommentModel extends RelationModel
 {
     protected $tableName = 'kdgx_social_comment';
+    
+    protected $_auto = array(
+        array('create_time', 'time', self::MODEL_INSERT, 'function'),
+        array('modified_time', 'time', self::MODEL_UPDATE, 'function')
+    );
+
+    protected $_link = [
+        'article' => [
+            'mapping_type' => self::BELONGS_TO,
+            'mapping_name' => 'article',
+            'mapping_fields' => 'article_id, create_time, user_id, content',
+            'class_name'   => 'Article',
+            'foreign_key'   => 'article_id'
+        ]
+    ];
+
+    public function setCondition(array $where)
+    {
+        foreach ($where as $k => $v) {
+            if ($this->_link[$k]) {
+                $this->_link[$k]['condition'] = $v;
+            }
+        }
+        return $this->_link;
+    }
+
 
     public function addData($data)
     {
@@ -25,10 +51,10 @@ class CommentModel extends BaseModel
         return $this->where($where)->save($save);
     }
 
-    public function getAll()
+    public function getAll($where = array())
     {
         $where['is_delete'] = '0';
-        $articles = $this->where($where)->select();
+        $articles = $this->where($where)->order('create_time desc')->select();
         return $articles;
     }
 

@@ -108,6 +108,9 @@ class OauthApiController extends BaseController
             $url = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token={$component_access_token}";
             $data = '{"component_appid":"'.C('COMPONENT_APPID').'","authorizer_appid":"'.$authorizer_appid.'"}';
             $response = json_decode(httpRequest($url, $data), true);
+            if(!isset($response['authorization_info'])) {
+                return [];
+            }
             foreach ($response['authorization_info']['func_info'] as $key => $value) {
                 $func_info .= $value['funcscope_category']['id'] .',';
             }

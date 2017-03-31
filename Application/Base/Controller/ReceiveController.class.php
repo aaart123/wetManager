@@ -132,6 +132,9 @@ class ReceiveController extends OauthApiController
             A('User/PublicUser')->addPublicList($publicInfo['user_name'], $plat_user_id);
             D('Base/PublicUser')->setPublicAdminMain($publicInfo['user_name'], $plat_user_id);
         }
+        if (ismobile()) {
+            $this->urlRedirect(U(Wap/Index/index));
+        }
         $this->urlRedirect(U('Home/Index/Index'));
     }
 
