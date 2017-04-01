@@ -111,7 +111,7 @@ class ArticleController extends CommonController
      * 获取个人发表文章
      * @param int
      */
-    public function getSelfList($user_id)
+    public function getSelfList()
     {
         $where['user_id'] = $user_id;
         $articles = $this->articleModel->getAll($where);
@@ -145,7 +145,7 @@ class ArticleController extends CommonController
             } else {
                 $article['user']['subscribe'] = 0;
             }
-            $this->dealParam($article);
+            $this->dealParam($article, $user_id);
         }
         return $articles;
     }
@@ -156,13 +156,36 @@ class ArticleController extends CommonController
      */
     public function getWeightList($user_id)
     {
+        $where['create_time'] = ['between',[strtotime(date('Y-m-d').' -1 week'), time()]];
+        $articles = $this->articleModel->getAll($where);
+        foreach ($articles as &$article) {
+            $article['is_thumb'] = 0;
+            $data['comment_id'] = $article['comment_id'];
+            $data['user_id'] = session('plat_user_id');
+            $data['is_delete'] = '0';
+            $this->articleThumbModel->getData($data) && $article['is_thumb'] = 1;
+            $article['user'] = D('UserInfo')->getUserInfo($article['user_id']);
+            if ($user_id == $article['user_id']) {
+                $article['user']['self'] = 1;
+            } else {
+                $article['user']['self'] = 0;
+            }
+            if ($this->isSubscribute($user_id, $article['user']['user_id'])) {
+                $article['user']['subscribe'] = 1;
+            } else {
+                $article['user']['subscribe'] = 0;
+            }
+            $article['weight'] = $article['thumb'] * 3 + $article['comment'] * 3 + $article['user']['subscribe'] * 4;
+            $this->dealParam($article, $user_id);
+        }
+        return $articles;
     }
 
     /**
      * 结果数组处理
      * @param int
      */
-    private function dealParam(&$data)
+    private function dealParam(&$data, $user_id = 0)
     {
         $data['is_thumb'] = 0;
         $where['comment_id'] = $data['comment_id'];

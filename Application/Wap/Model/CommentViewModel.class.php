@@ -36,13 +36,9 @@ class CommentViewModel extends ViewModel
         $data = $this->where($where)->order('c.create_time desc')->select();
         foreach ($data as &$value) {
              $value['article'] = [
-                 'create_time' => 'a_create_time',
-                 'user_id' => 'a_user_id',
-                 'content' => 'a_content',
-                 'img' => 'img',
-                 'url' => 'url',
-                 'thumb' => 'thumb',
-                 'comment' => 'comment'
+                 'create_time' => $value['a_create_time'],
+                 'user_id' => $value['a_user_id'],
+                 'content' => $value['a_content']
               ];
               unset($value['a_create_time']);
               unset($value['a_user_id']);

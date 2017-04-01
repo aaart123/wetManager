@@ -206,3 +206,22 @@ function ismobile() {
     }
     return false;
 }
+
+/**
+ * 按关键字比较两个数组大小
+ * @param array 第一个数组
+ * @param array 第二个数组
+ * @param string 关键字
+ */
+function descSort($key)
+{
+    return function ($x, $y) use ($key) {
+        if($x[$key] > $y[$key]){
+            return false;
+        }elseif ($x[$key] < $y[$key]) {
+            return true;
+        }else{
+            return 0;
+        }
+    };
+}

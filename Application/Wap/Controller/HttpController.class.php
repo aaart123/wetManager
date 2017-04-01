@@ -25,23 +25,6 @@ class HttpController extends BaseController
         $this->commentActivity = new CommentController();
     }
 
-    /**
-     * 按关键字比较两个数组大小
-     * @param array 第一个数组
-     * @param array 第二个数组
-     * @param string 关键字
-     */
-    private function sortCreateTime($x, $y, $key)
-    {
-        if($x[$key] > $y[$key]){
-            return false;
-        }elseif ($x[$key] < $y[$key]) {
-            return true;
-        }else{
-            return 0;
-        }
-    }
-
 /* ----------------------------------- 圈子文章 --------------------------------------------------- */
 
     public function createArticle()
@@ -109,6 +92,19 @@ class HttpController extends BaseController
         // 获取最新列表
             // http://www.koudaidaxue.com/index.php/wap/http/getArticleList
         $list = $this->articleActivity->getNewList($this->user_id);
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $list
+        ]);
+        exit;
+    }
+
+    public function getWeightList()
+    {
+        // 获取加权列表
+            // http://www.koudaidaxue.com/index.php/wap/http/getWeightList
+        $list = $this->articleActivity->getWeightList($this->user_id);
+        usort($list, descSort('weight'));
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -222,7 +218,7 @@ class HttpController extends BaseController
         $isCommentList = $this->commentActivity->getIsCommentList($user_id);
         $commentList = $this->commentActivity->getSelfList($user_id);
         $list = array_merge($articleList, $isCommentList, $commentList);
-        usort($list, 'sortCreateTime');
+        usort($list, descSort('create_time'));
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -265,4 +261,4 @@ class HttpController extends BaseController
         ]);
         exit;
     }
-}
+}   
