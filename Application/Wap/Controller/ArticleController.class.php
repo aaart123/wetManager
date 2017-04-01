@@ -99,11 +99,16 @@ class ArticleController extends CommonController
         }
     }
 
-    public function getArticle($article_id)
+    /**
+     * 获取文章信息
+     * @param int 文章id
+     * @param int 用户id
+     */
+    public function getArticle($article_id, $user_id)
     {
         $article = $this->articleModel->getData($article_id);
 
-        $this->dealParam($article);
+        $this->dealParam($article, $user_id);
         return $article;
     }
 

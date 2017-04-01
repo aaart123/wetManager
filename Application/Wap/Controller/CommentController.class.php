@@ -130,7 +130,7 @@ class CommentController extends CommonController
      * 获取某个评论的信息
      * @param int
      */
-    public function getCommen($comment_id)
+    public function getComment($comment_id)
     {
         $comment = $this->commentModel->getData($comment_id);
         $user = D('UserInfo')->getUserInfo($comment['user_id']);
@@ -159,7 +159,9 @@ class CommentController extends CommonController
         $data['is_thumb'] = 0;
         $this->commentThumbModel->getData($where) && $data['is_thumb'] = 1;
         if ($data['pid']) {
-            $data['pid'] = $this->getCommen($data['comment_id']);
+            $data['pid'] = $this->commentModel->getData($data['pid']);
+            $user = D('UserInfo')->getUserInfo($data['user_id']);
+            $data['pid']['user'] = $user;
         }
         unset($data['modified_time']);
         unset($data['is_delete']);

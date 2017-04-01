@@ -25,7 +25,7 @@ class HttpController extends BaseController
         $this->commentActivity = new CommentController();
     }
 
-/* ----------------------------------- 圈子文章 --------------------------------------------------- */
+/* ---------------------------------------- 圈子文章 ------------------------------------------------- */
 
     public function createArticle()
     {
@@ -79,7 +79,7 @@ class HttpController extends BaseController
     {
         // 获取动态信息
             // http://www.koudaidaxue.com/index.php/wap/http/getArticleData?article_id=3
-        $article = $this->articleActivity->getArticle($article_id);
+        $article = $this->articleActivity->getArticle($article_id, $this->user_id);
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $article
@@ -131,7 +131,8 @@ class HttpController extends BaseController
         }
     }
 
-/* ----------------------------------- 评论管理 --------------------------------------------------- */
+/* ---------------------------------------- 评论管理 -------------------------------------------------- */
+    
     public function createComment($article_id)
     {
         $post = I('post.');
@@ -207,7 +208,7 @@ class HttpController extends BaseController
             exit;
         }
     }
-/* ----------------------------------- 个人相关 --------------------------------------------------- */
+/* ---------------------------------------- 个人相关 -------------------------------------------------- */
 
     public function selfRelate()
     {
@@ -261,4 +262,4 @@ class HttpController extends BaseController
         ]);
         exit;
     }
-}   
+}
