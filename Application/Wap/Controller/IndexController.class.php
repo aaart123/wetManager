@@ -8,6 +8,7 @@
 
 namespace Wap\Controller;
 
+
 use Wap\Controller\BaseController;
 
 class IndexController extends BaseController
@@ -15,7 +16,7 @@ class IndexController extends BaseController
 
     function index()
     {
-        print_r($_SESSION);
+        $this->display();
     }
 
 }

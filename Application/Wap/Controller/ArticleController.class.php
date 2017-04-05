@@ -5,6 +5,7 @@ namespace Wap\Controller;
 use Wap\Controller\CommonController;
 
 use Wap\Model\ArticleThumbModel;
+use Wap\Model\ArticleThumbViewModel;
 
 /**
  * 圈子文章管理
@@ -14,12 +15,14 @@ class ArticleController extends CommonController
 {
     private $articleModel;
     private $articleThumbModel;
+    private $articleThumbView;
     
     public function __construct()
     {
         parent::__construct();
         $this->articleModel = D('Article');
         $this->articleThumbModel = new ArticleThumbModel();
+        $this->articleThumbView = new ArticleThumbViewModel();
     }
 
     /**
@@ -52,15 +55,24 @@ class ArticleController extends CommonController
      */
     public function thumbArticle($user_id, $article_id)
     {
-        $data = [
+        $where = [
             'user_id' => $user_id,
             'article_id' => $article_id
         ];
-        if ($thumb = $this->articleThumbModel->getData($data)) {
-            $save['is_delete'] = '1';
-            $thumb['is_delete'] && $save['is_delete'] = '0';
-            $this->articleThumbModel->editData($where, $save);
-        } elseif ($this->articleThumbModel->addData($data)) {
+        if ($thumb = $this->articleThumbModel->getData($where)) {
+            $save['state'] = 1;
+            $thumb['state'] && $save['state'] = 0;
+            if ($this->articleThumbModel->editData($where, $save)) {
+                if ($save['state']) {
+                    $this->articleModel->Insec($article_id, 'thumb');
+                }else {
+                    $this->articleModel->Desec($article_id, 'thumb');
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } elseif ($this->articleThumbModel->addData($where) && $this->articleModel->Insec($article_id, 'thumb')) {
             return true;
         } else {
             return false;
@@ -106,17 +118,43 @@ class ArticleController extends CommonController
      */
     public function getArticle($article_id, $user_id)
     {
-        $article = $this->articleModel->getData($article_id);
-
+        $article = $this->articleModel->getData($article_id);        
         $this->dealParam($article, $user_id);
         return $article;
+    }
+
+    public function getSubscribeArticle($user_id)
+    {
+        $subscribes = D('Subscribe')->field('subscribe_user')
+        ->where(array('user_id'=>$user_id,'subscribe_state'=>'1'))->select();
+        $subscribes = array_column($subscribes, 'subscribe_user');
+        $subscribes = implode(',', $subscribes);
+        $where['user_id'] = ['in', $subscribes];
+        $articles = $this->articleModel->getAll($where);
+        foreach ($articles as &$article) {
+            $this->dealParam($article);
+        }
+        return $articles;
+    }
+
+    public function getThumbArticle($user_id)
+    {
+        $where = [
+            't.user_id' => $user_id,
+            'state' => 1
+        ];
+        $articles = $this->articleThumbView->getAll($where);
+        foreach ($articles as &$article) {
+            $this->dealParam($article);
+        }
+        return $articles;
     }
 
     /**
      * 获取个人发表文章
      * @param int
      */
-    public function getSelfList()
+    public function getSelfList($user_id)
     {
         $where['user_id'] = $user_id;
         $articles = $this->articleModel->getAll($where);
@@ -134,22 +172,6 @@ class ArticleController extends CommonController
     {
         $articles = $this->articleModel->getAll();
         foreach ($articles as &$article) {
-            $article['is_thumb'] = 0;
-            $data['comment_id'] = $article['comment_id'];
-            $data['user_id'] = session('plat_user_id');
-            $data['is_delete'] = '0';
-            $this->articleThumbModel->getData($data) && $article['is_thumb'] = 1;
-            $article['user'] = D('UserInfo')->getUserInfo($article['user_id']);
-            if ($user_id == $article['user_id']) {
-                $article['user']['self'] = 1;
-            } else {
-                $article['user']['self'] = 0;
-            }
-            if ($this->isSubscribute($user_id, $article['user']['user_id'])) {
-                $article['user']['subscribe'] = 1;
-            } else {
-                $article['user']['subscribe'] = 0;
-            }
             $this->dealParam($article, $user_id);
         }
         return $articles;
@@ -164,22 +186,6 @@ class ArticleController extends CommonController
         $where['create_time'] = ['between',[strtotime(date('Y-m-d').' -1 week'), time()]];
         $articles = $this->articleModel->getAll($where);
         foreach ($articles as &$article) {
-            $article['is_thumb'] = 0;
-            $data['comment_id'] = $article['comment_id'];
-            $data['user_id'] = session('plat_user_id');
-            $data['is_delete'] = '0';
-            $this->articleThumbModel->getData($data) && $article['is_thumb'] = 1;
-            $article['user'] = D('UserInfo')->getUserInfo($article['user_id']);
-            if ($user_id == $article['user_id']) {
-                $article['user']['self'] = 1;
-            } else {
-                $article['user']['self'] = 0;
-            }
-            if ($this->isSubscribute($user_id, $article['user']['user_id'])) {
-                $article['user']['subscribe'] = 1;
-            } else {
-                $article['user']['subscribe'] = 0;
-            }
             $article['weight'] = $article['thumb'] * 3 + $article['comment'] * 3 + $article['user']['subscribe'] * 4;
             $this->dealParam($article, $user_id);
         }
@@ -194,7 +200,7 @@ class ArticleController extends CommonController
     {
         $data['is_thumb'] = 0;
         $where['comment_id'] = $data['comment_id'];
-        $where['user_id'] = session('plat_user_id');
+        $where['user_id'] = $user_id;
         $where['is_delete'] = '0';
         $this->articleThumbModel->getData($where) && $data['is_thumb'] = 1;
         $data['user'] = D('UserInfo')->getUserInfo($data['user_id']);

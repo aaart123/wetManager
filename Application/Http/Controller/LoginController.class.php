@@ -28,7 +28,7 @@ class LoginController extends Controller
             }else{
                 $publicList = A('User/PublicUser')->getPublic($userId);
                 D('Base/User')->where(array('user_id'=>$userId))->setfield('login_public',$publicList[0]['public_id']);
-                $_SESSION['plat_public_id'] = $publicList[0]['public_id'];
+                $publicList[0]['public_id'] ? $_SESSION['plat_public_id'] = $publicList[0]['public_id'] : '';
             }
 
             echo json_encode(array(
@@ -133,7 +133,7 @@ class LoginController extends Controller
      */
     public function reg()
     {
-        if( A('User/User')->isOccupy(array('phone'=>$_POST['phone'])) )
+        if( D('Base/User')->isOccupy(array('phone'=>$_POST['phone'])) )
         {
             echo json_encode(array(
                 'errcode'=>1000,
@@ -147,10 +147,12 @@ class LoginController extends Controller
                     'errmsg'=>'验证码错误！'
                 ));exit();
             }
-            $_POST['password'] = md5($_POST['password']);
-            $_POST['openid'] = isset($_SESSION['plat_openid']) ? $_SESSION['plat_openid'] : '';
-            $_POST['email'] = isset($_SESSION['plat_email']) ? $_SESSION['plat_email'] : '';
-            if (A('User/User')->reg($_POST)) {
+            $data['phone'] = $_POST['phone'];
+            $data['password'] = md5($_POST['password']);
+            $data['openid'] = isset($_SESSION['plat_openid']) ? $_SESSION['plat_openid'] : '';
+            $data['email'] = isset($_SESSION['plat_email']) ? $_SESSION['plat_email'] : '';
+            if ($userId= D('Base/User')->add($data)) {
+                $_SESSION['plat_user_id'] = $userId;
                 echo json_encode(array(
                     'errcode' => 0,
                     'errmsg' => '请求成功！'
@@ -162,7 +164,6 @@ class LoginController extends Controller
                 ));exit();
             }
         }
-
     }
 
 

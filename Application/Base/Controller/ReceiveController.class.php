@@ -44,12 +44,16 @@ class ReceiveController extends OauthApiController
                     M()->execute($sql);
                     break;
                 case 'uodateauthorized': // 更新授权
+                    file_put_contents('auth.log', 'update', FILE_APPEND);
                     if (M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$param['AuthorizerAppid']))->find()) {
                         $save = array(
                         'authorization_code'=>$param['AuthorizationCode'],
-                        'authorizer_code_expires_in'=>$param['AuthorizationCodeExpiredTime']
+                        'authorizer_code_expires_in'=>$param['AuthorizationCodeExpiredTime'],
+                        'authorization_code' => '1'
                             );
                         M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$param['AuthorizerAppid']))->save($save);
+                        file_put_contents('auth.log', M('kdgx_plat_authorizer')->getLastSql(), FILE_APPEND);
+                        file_put_contents('auth.log', M('kdgx_plat_authorizer')->getError(), FILE_APPEND);
                     } else {
                         $sql = "INSERT INTO kdgx_plat_authorizer (authorizer_appid,authorization_code,authorizer_code_expires_in,authorization_state) VALUES('"
                         .$param['AuthorizerAppid']."','"
@@ -62,7 +66,7 @@ class ReceiveController extends OauthApiController
             echo 'success';
             exit();
         } else {
-            echo '<xml><return_code><![CDATA[FAILED]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+            echo 'faile';
             exit();
         }
     }
@@ -115,27 +119,42 @@ class ReceiveController extends OauthApiController
     public function authorizer_access_token()
     {
         $pre_auth_code = $this->getPre_auth_code();
-        $redirect_uri = 'http://www.koudaidaxue.com/index.php/base/Receive/Redirect';
+        $redirect_uri = 'http://www.koudaidaxue.com/index.php/Base/Receive/Redirect';
         $redirect_uri = urlencode($redirect_uri);
         echo "<script>location.href='https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid={$this->component_appid}&pre_auth_code={$pre_auth_code}&redirect_uri={$redirect_uri}'</script>";
+        exit;
     }
 
     // 授权成功回调地址
     public function Redirect()
     {
         $auth_code = $_GET['auth_code'];
+        if (empty($auth_code)) {
+            $this->urlRedirect(U('Base/Receive/authorizer_access_token'));
+        }
         $response = $this->getCodeAuths($auth_code);
+        if (empty($response['authorizer_appid'])) {
+            $this->urlRedirect(U('Base/Receive/authorizer_access_token'));
+        }
         // $response['authorization_info']['authorizer_appid'] = 'wx5e843e96fc152d10';
-        $publicInfo = $this->getPublicInfo($response['authorization_info']['authorizer_appid']);
+        $publicInfo = $this->getPublicInfo($response['authorizer_appid']);
         $plat_user_id = session('plat_user_id');
+
         if (!empty($plat_user_id)) {
             A('User/PublicUser')->addPublicList($publicInfo['user_name'], $plat_user_id);
             D('Base/PublicUser')->setPublicAdminMain($publicInfo['user_name'], $plat_user_id);
+            if (ismobile()) {
+                $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';
+                $this->urlRedirect($url);
+            } else {
+                $url = 'http://'.$_SERVER['HTTP_HOST'].'/Home/Index';
+                $this->urlRedirect($url);
+            }
+        } elseif(ismobile()) {
+            $this->urlRedirect(U('Wap/Index/index'));
+        } else {
+           $this->urlRedirect(U('Home/Index/Index')); 
         }
-        if (ismobile()) {
-            $this->urlRedirect(U(Wap/Index/index));
-        }
-        $this->urlRedirect(U('Home/Index/Index'));
     }
 
     // 使用授权码换取公众号的接口调用凭据和授权信息
@@ -157,13 +176,12 @@ class ReceiveController extends OauthApiController
                     'authorizer_access_token_expires_in'=>time()+$response['authorization_info']['expires_in']
                     );
                 M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$response['authorization_info']['authorizer_appid']))->save($save);
-                return $response;
+                return $response['authorization_info'];
             } else {
                 return false;
             }
         } else {
-            $response['authorization_info'] = $data;
-            return $response;
+            return $data;
         }
     }
 }

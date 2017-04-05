@@ -77,11 +77,22 @@ class PublicUserModel extends AppModel
      * 获取用户所管理的公众号
      * @return mixed\
      */
-    public function getPublic($userId)
+    public function getPublicInfo($userId)
     {
-        $sql = "select public_id from `kdgx_plat_public_user`  where  find_in_set('$userId',`user_list`)";
+        $sql = "SELECT p.`user_name`,
+                       p.`nick_name`,
+                       p.`head_img`,
+                       p.`service_type_info`
+                FROM `pocket`.`kdgx_plat_public` AS p
+                INNER JOIN `kdgx_plat_authorizer` AS a ON a.`authorizer_appid`= p.`authorizer_appid`
+                WHERE p.`user_name` IN(
+                SELECT public_id
+                FROM `kdgx_plat_public_user`
+                WHERE find_in_set('$userId', `user_list`)  )
+                AND a.`authorization_state`= '1'";
         return $this->query($sql);
     }
+
 
 
     /***

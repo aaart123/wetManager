@@ -50,7 +50,7 @@ class ArticleModel extends BaseModel
     public function Desec($article_id, $field)
     {
         $where['article_id'] = $article_id;
-        return $this->where($where)->Desec($field, 1);  
+        return $this->where($where)->setDec($field, 1);  
     }
 
 }

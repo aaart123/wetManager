@@ -56,9 +56,13 @@ class CommentController extends CommonController
             'comment_id' => $comment_id
         ];
         if ($thumb = $this->commentThumbModel->getData($data)) {
-            $save['is_delete'] = '1';
-            $thumb['is_delete'] && $save['is_delete'] = '0';
-            $this->commentThumbModel->editData($data, $save);
+            $save['state'] = 1;
+            $thumb['state'] && $save['state'] = 0;
+            if ($this->commentThumbModel->editData($data, $save)) {
+                return true;
+            } else {
+                return false;
+            }
         } elseif ($this->commentThumbModel->addData($data)) {
             return true;
         } else {
@@ -155,12 +159,12 @@ class CommentController extends CommonController
         $where['comment_id'] = $data['comment_id'];
         $data['thumbs'] = $this->commentThumbModel->getCount($where);
         $where['user_id'] = session('plat_user_id');
-        $where['is_delete'] = '0';
+        $where['state'] = 1;
         $data['is_thumb'] = 0;
         $this->commentThumbModel->getData($where) && $data['is_thumb'] = 1;
         if ($data['pid']) {
             $data['pid'] = $this->commentModel->getData($data['pid']);
-            $user = D('UserInfo')->getUserInfo($data['user_id']);
+            $user = D('UserInfo')->getUserInfo($data['pid']['user_id']);
             $data['pid']['user'] = $user;
         }
         unset($data['modified_time']);

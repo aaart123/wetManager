@@ -112,14 +112,38 @@ class HttpController extends BaseController
         exit;
     }
 
+    public function getSubscribeList()
+    {
+        // 获取关注动态
+            // http://www.koudaidaxue.com/index.php/wap/http/getSubscribeList
+        $list = $this->articleActivity->getSubscribeArticle($this->user_id);
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $list
+        ]);
+        exit;
+    }
+
+    public function getThumbList()
+    {
+        // 获取喜欢动态
+            // http://www.koudaidaxue.com/index.php/wap/http/getThumbList
+        $list = $this->articleActivity->getThumbArticle($this->user_id);
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $list
+        ]);
+        exit;
+    }
+
     public function thumbArticle($article_id)
     {
         // 取消/点赞圈子文章
-            // http://www.koudaidaxue.com/index.php/wap/http/thumbArticle?article_id=1
+            // http://www.koudaidaxue.com/index.php/wap/http/thumbArticle?article_id=28
         if ($this->articleActivity->thumbArticle($this->user_id, $article_id)) {
             echo json_encode([
                 'errcode' => 0,
-                'errmsg' => ''
+                'errmsg' => '成功'
             ]);
             exit;
         } else {
@@ -140,7 +164,7 @@ class HttpController extends BaseController
             // http://www.koudaidaxue.com/index.php/wap/http/createComment?article_id=3
             // $post = [
             //     'content' => '这里是'.$this->user_id.'评论'.$article_id.'的内容',
-            //     'pid' => 0 #评论的是哪条评论comment_id;评论文章则为0
+            //     'pid' => 0 #评论的评论comment_id;评论文章则为0
             // ];
         $post['user_id'] = session('plat_user_id');
         $post['article_id'] = $article_id;
@@ -166,7 +190,7 @@ class HttpController extends BaseController
         if ($this->commentActivity->deleteComment($comment_id)) {
             echo json_encode([
                 'errcode' => 0,
-                'errmsg' => ''
+                'errmsg' => '成功'
             ]);
             exit;
         } else {
@@ -193,7 +217,7 @@ class HttpController extends BaseController
     public function thumbComment($comment_id)
     {
         // 取消/点赞圈子文章
-            // http://www.koudaidaxue.com/index.php/wap/http/thumbComment?comment_id=1
+            // http://www.koudaidaxue.com/index.php/wap/http/thumbComment?comment_id=18
         if ($this->commentActivity->thumbComment($this->user_id, $comment_id)) {
             echo json_encode([
                 'errcode' => 0,

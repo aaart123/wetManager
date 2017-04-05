@@ -16,42 +16,75 @@ class LoginController extends Controller
 //    const APP_SECRET = '6861d005542696913ed31a9645690595';//微信分配的key
     const APP_ID = 'wxe8b12da30f8ed757';//微信分配的appID
     const APP_SECRET = '4a266d702e91408183772dcd3a774dfc';//微信分配的key
+    
     function index()
     {
-        print_r($_SESSION);
+        $this->display('Index/login');
     }
+
+
+
 
     /**
-     * 新媒静默授权登录
+     * 微信静默授权
      */
-    public function authorization($url)
+    public function silentAuthWechat($url)
     {
-        if( $code = $_GET['code'] )
+        if($code = $_GET['code'] )
         {
-            $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.self::APP_ID.'&secret='.self::APP_SECRET.'&code='.$code.'&grant_type=authorization_code';
-            $json = https_request($url);
+            $http = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.self::APP_ID.'&secret='.self::APP_SECRET.'&code='.$code.'&grant_type=authorization_code';
+            $json = https_request($http);
             $data = json_decode($json,true);
-            if( $data['openid'] ){
-                #判断手机号是否绑定新媒
-                if( $userId = D('Base/User')->isOccupy(array('new_openid'=>$data['openid'])) )
-                {
-                    $_SESSION['plat_user_id'] = $userId;
-                    header('Location:http://www.koudaidaxue.com/index.php/Home/#/');exit();//直接登录
-                }else{
-                    $_SESSION['social_openid'] = $data['openid'];
-                    header('Location:http://www.koudaidaxue.com/index.php/Home/#/register');exit();//跳入注册界面
-                }
+            if( $userId = D('Base/User')->isOccupy(array('new_openid'=>$data['openid'])) )
+            {
+                $_SESSION['plat_user_id'] = $userId;
+                header('Location:'.$url);exit;
             }else{
-                $this->authorization();
+                $url = 'http://www.koudaidaxue.com/index.php/Wap/Login/authWechat';
+                $url = urlencode($url);
+                $http = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.self::APP_ID.'&redirect_uri='.$url.'&response_type=code&scope=snsapi_userinfo&state='.rand(1000,9999).'#wechat_redirect';
+                header('Location:'.$http);exit;
             }
         }else{
-            $url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.self::APP_ID.'&redirect_uri='.urlencode($url).'&response_type=code&scope=snsapi_base&state='.rand(100000,999999).'#wechat_redirect';
-            header('Location:'.$url);exit();
+            $url = urlencode($url);
+            $http = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.self::APP_ID.'&redirect_uri='.$url.'&response_type=code&scope=snsapi_base&state='.rand(1000,9999).'#wechat_redirect';
+            header('Location:'.$http);exit;
         }
+
     }
 
 
+    /**
+     * 微信网页授权
+     */
+    public function authWechat()
+    {
+            $code = $_GET['code'];
+            $http = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.self::APP_ID.'&secret='.self::APP_SECRET.'&code='.$code.'&grant_type=authorization_code';
+            $json = https_request($http);
+            $data = json_decode($json,true);
+            $http = 'https://api.weixin.qq.com/sns/userinfo?access_token='.$data['access_token'].'&openid='.$data['openid'].'&lang=zh_CN';
+            $json = https_request($http);
+            $data = json_decode($json,true);
+            $_SESSION['wechat_info'] = $data;
+            header('Location:'.'http://www.koudaidaxue.com/index.php/wap/Login/index#/register');exit;
+    }
 
+
+    /**
+     * 获取用户头像
+     */
+    public function getUserInfo()
+    {
+        $data = array(
+            'nickname'=>$_SESSION['wechat_info']['nickname'],
+            'headimgurl'=>$_SESSION['wechat_info']['headimgurl'],
+        );
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>$data,
+        ));exit;
+    }
 
 
     /**
@@ -80,92 +113,74 @@ class LoginController extends Controller
     }
 
 
-    /**
-     * 验证手机验证码
-     */
-    public function checkPhone(){
-        $phonecode = $_POST['phonecode'];
-        $phone = $_POST['phone_number'];
-        $secode = session('phoneVerify');
-        if(md5($phone.$phonecode)==$secode){
-            echo json_encode(array(
-                'errcode' => 0,
-                'errmsg'	=> '成功',
-            ));exit;
-        }else{
-            echo json_encode(array(
-                'errcode'	=> 10010,
-                'errmsg'	=> '验证码错误!',
-            ));exit;
-        }
-    }
 
 
-    /**
-     * 绑定第三方
-     */
-    public function  bindingTthirdParty()
+    public function banding()
     {
-        $userId = A('User/User')->verifyLogin(array('phone'=>$_POST['phone']));
-        $data = array('user_id'=>$userId);
-        $_SESSION['social_openid'] ? $data['new_openid']=$_SESSION['social_openid'] : '';
-        if( A('User/User')->setData($data) )
+        $phone = $_POST['phone'];
+        $code = $_POST['code'];
+
+        if(md5($phone.$code)==session('phoneVerify'))
         {
-            echo json_encode(array(
-                'errcode'=>0,
-                'errmsg'=>'绑定成功！'
-            ));exit();
-        }else{
-            echo json_encode(array(
-                'errcode'=>1000,
-                'errmsg'=>'绑定失败！'
-            ));exit();
-        }
-    }
-
-
-
-
-
-    /**
-     * 首次提交注册信息
-     */
-    public function reg()
-    {
-        if( D('Base/User')->isOccupy(array('phone'=>$_POST['phone'])) )
-        {
-            echo json_encode(array(
-                'errcode'=>1000,
-                'errmsg'=>'手机号已被注册！'
-            ));exit();
-        }else{
-            if(md5($_POST['phone'].$_POST['code']) != session('phoneVerify'))
+            $userId = D('Base/User')->where(array('phone'=>$phone))->getfield('user_id');
+            if( $userId )
             {
+                D('Base/User')->where(array('user_id'=>$userId))->setfield('new_openid',$_SESSION['wechat_info']['openid']);
+                $data = $_SESSION['wechat_info'];
+                $data['user_id'] = $userId;
+                D('UserInfo')->add($data,array(),true);
+                $_SESSION['plat_user_id'] = $userId;
                 echo json_encode(array(
-                    'errcode'=>1000,
-                    'errmsg'=>'验证码错误！'
-                ));exit();
+                    'errcode'=>0,
+                    'errmsg'=>'成功',
+                ));exit;
+            }else{
+                echo json_encode(array(
+                    'errcode'=>1,
+                    'errmsg'=>'没有注册！',
+                ));exit;
             }
-            $data['phone'] = $_POST['phone'];
-            $data['password'] = md5($_POST['password']);
-            $data['new_openid'] = isset($_SESSION['social_openid']) ? $_SESSION['social_openid'] : '';
-            if (D('Base/User')->add($data)) {
-                echo json_encode(array(
-                    'errcode' => 0,
-                    'errmsg' => '请求成功！'
-                ));exit();
-            } else {
-                echo json_encode(array(
-                    'errcode' => 1000,
-                    'errmsg' => '注册失败！'
-                ));exit();
-            }
+
+        }else{
+            echo json_encode(array(
+                'errcode'=>10001,
+                'errmsg'=>'验证码错误',
+            ));exit;
         }
     }
 
 
 
+public function reg()
+{
+    $phone = $_POST['phone'];
+    $code = $_POST['code'];
+    $password = $_POST['password'];
+    if(md5($phone.$code)==session('phoneVerify'))
+    {
+        $data = array(
+            'phone'=>$phone,
+            'password'=>md5($password),
+            'new_openid'=>$_SESSION['wechat_info']['openid'],
+        );
+        $userId = D('Base/User')->add($data);
+        $data = $_SESSION['wechat_info'];
+        $data['user_id'] = $userId;
+        D('UserInfo')->add($data,array(),true);
+        $_SESSION['plat_user_id'] = $userId;
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>'注册成功！',
+        ));exit;
+    }else{
+        echo json_encode(array(
+            'errcode'=>10001,
+            'errmsg'=>'验证码错误',
+        ));exit;
+    }
 
+
+}
 
 
 

@@ -21,36 +21,27 @@ class BaseController extends Controller
         parent::__construct();
 
         //授权微信
-        if(empty($_SESSION['plat_user_id']))
+        if(empty($_SESSION['plat_user_id']) || !isset($_SESSION['plat_user_id']))
         {
+            $url = 'http://'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
             $Object = A('Login');
-            $Object->silentAuthWechat();
+            $Object->silentAuthWechat($url);
         }
 
         //授权公众号
-        $userId = $_SESSION['palt_user_id'];
-        if( $data = D('Base/PublicUser')->getPublic($userId) )
+        $userId = $_SESSION['plat_user_id'];
+        if( $data = D('Base/PublicUser')->getPublicInfo($userId) )
         {
-            foreach ($data as $value) {
-                if($info = D('Base/PublicUser')->getPublicInfo($value['public_id']))
-                {
-                    $array[] = $info;
-                }
-            }
-            if(empty($array))
+            if($login_public = D('User')->where(array('user_id'=>$userId))->getfield('login_public'))
             {
-                header('Location:http://www.koudaidaxue.com/index.php/Wap/login/index#/banding');exit;
+                $_SESSION['plat_public_id'] = $login_public;
+            }else {
+                $data = D('Base/PublicUser')->getPublicInfo($userId);
+                $_SESSION['plat_public_id'] = $data[0]['public_id'];
             }
-        }
-
-        if($login_public = D('Base/User')->where(array('user_id'=>$userId))->getfield('login_public'))
-        {
-            $_SESSION['plat_public_id'] = $login_public;
         }else{
-            $data = D('Base/PublicUser')->getPublic($userId);
-            $_SESSION['plat_public_id'] = $data[0]['public_id'];
+            header('Location:http://www.koudaidaxue.com/index.php/base/receive/authorizer_access_token');exit;
         }
-
     }
 
 }

@@ -46,25 +46,30 @@ class OauthApiController extends BaseController
         "component_verify_ticket":"' . $component_verify_ticket . '"}';
         $url = "https://api.weixin.qq.com/cgi-bin/component/api_component_token";
         $response = httpRequest($url, $data);
-        file_put_contents('component_access_token', $response);
-        $response = json_decode($response);
-        return $response->component_access_token;
+        $code = json_decode($response);
+        if ($code->errcode == 0) {
+            file_put_contents('component_access_token', $response); 
+        }
+        return $code->component_access_token;
     }
 
     // 获取pre_auth_code
     protected function getPre_auth_code()
     {
-        $response = file_get_contents('pre_access_token');
-        if (time()-filemtime('pre_access_token')>$response->expires_in) {
+        $response = file_get_contents('pre_auth_token');
+        if (time()-filemtime('pre_auth_token')>$response->expires_in) {
             $component_access_token = $this->getComponent_access_aoken();
             $url = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token=".$component_access_token;
             $data = '{
             "component_appid": "'.$this->component_appid.'"}';
             $response = httpRequest($url, $data);
-            file_put_contents('pre_auth_token', $response);
+            $ret = json_decode($response);
+            if ($ret->errcode == 0) {
+                file_put_contents('pre_auth_token', $response);
+            }
         }
-        $ret = json_decode($response, true);
-        return $ret['pre_auth_code'];
+        $ret = json_decode($response);
+        return $ret->pre_auth_code;
     }
 
     // 获取公众号的接口调用凭据和授权信息authorizer_access_token
@@ -95,6 +100,7 @@ class OauthApiController extends BaseController
             'authorizer_refresh_token'=>$response->authorizer_refresh_token,
             'authorizer_access_token_expires_in'=>time()+$response->expires_in
             );
+
             M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$authorizer_appid))->save($save);
         }
         return $response->authorizer_access_token;
@@ -108,7 +114,7 @@ class OauthApiController extends BaseController
             $url = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token={$component_access_token}";
             $data = '{"component_appid":"'.C('COMPONENT_APPID').'","authorizer_appid":"'.$authorizer_appid.'"}';
             $response = json_decode(httpRequest($url, $data), true);
-            if(!isset($response['authorization_info'])) {
+            if (!isset($response['authorization_info'])) {
                 return [];
             }
             foreach ($response['authorization_info']['func_info'] as $key => $value) {

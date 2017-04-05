@@ -76,6 +76,6 @@ class CommentModel extends RelationModel
     public function Desec($comment_id, $field)
     {
         $where['comment_id'] = $comment_id;
-        return $this->where($where)->Desec($field, 1);  
+        return $this->where($where)->setDec($field, 1);  
     }
 }

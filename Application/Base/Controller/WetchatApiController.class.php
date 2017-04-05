@@ -30,7 +30,6 @@ class WetchatApiController extends BaseController
         return $oauthApi->getAuths($appId);
     }
 
-
 /********************************************  消息管理API   ***********************************************************/
     public function casekfMessage()
     {

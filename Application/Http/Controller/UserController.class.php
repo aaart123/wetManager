@@ -23,7 +23,7 @@ class UserController extends BaseController
     public function getUserInfo()
     {
         $userId = $_SESSION['plat_user_id'];
-        if( $data = A('User/User')->getUserInfo($userId) )
+        if( $data = D('Base/User')->getUserInfo($userId) )
         {
             echo json_encode(array(
                 'errcode'=>0,
@@ -37,37 +37,6 @@ class UserController extends BaseController
         }
     }
 
-    /***
-     * 获取微信上的用户信息
-     */
-    public function getWechatUserInfo()
-    {
-        $userId = $_SESSION['plat_user_id'];
-        $openId = D('Base/User')->where(array('user_id'=>$userId))->getfield('openid');
-        if( $openId )
-        {
-            if( $data = A('User/user')->getWechatUserInfo($openId) )
-            {
-                echo json_encode(array(
-                    'errcode'=>0,
-                    'errmsg'=>$data
-                ));exit();
-            }else{
-                echo json_encode(array(
-                    'errcode'=>1000,
-                    'errmsg'=>'获取失败！'
-                ));exit();
-            }
-        }else{
-            echo json_encode(array(
-                'errcode'=>1000,
-                'errmsg'=>'未授权微信号！'
-            ));exit();
-        }
-
-    }
-
-
 
 
 
@@ -76,13 +45,9 @@ class UserController extends BaseController
      */
     public function getPublic()
     {
-        //$_SESSION['plat_user_id']=2;
-       
-        if( $data = A('User/PublicUser')->getPublic($_SESSION['plat_user_id']) )
+        $userId = $_SESSION['plat_user_id'];
+        if( $data = D('Base/PublicUser')->getPublicInfo($userId) )
         {
-            foreach ($data as &$value) {
-                $value = D('Base/Public')->where(array('user_name'=>$value['public_id']))->find();
-            }
             echo json_encode(array(
                 'errcode'=>0,
                 'errmsg'=>$data,

@@ -70,8 +70,9 @@ class UserModel extends BaseModel
      */
     Public function getUserInfo($userId)
     {
-        $data = $this->field('phone,email,openid')->where(array('user_id'=>$userId))->find();
-        return $this->parseFieldsMap($data);
+        $sql = 'SELECT u.`user_id`, i.`nickname`, i.`headimgurl`, i.`sex`, u.`phone`, u.`email` FROM `pocket`.`kdgx_plat_user` AS u  INNER JOIN `pocket`.`kdgx_user_info` AS i ON i.`user_id` =u.`user_id` WHERE u.`user_id` ='.$userId;
+        $data = $this->query($sql);
+        return $data[0];
     }
 
 
