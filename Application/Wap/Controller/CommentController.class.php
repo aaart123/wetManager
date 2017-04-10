@@ -19,7 +19,7 @@ class CommentController extends CommonController
     protected $commentModel;
     protected $commentThumbModel;
     protected $commentView;
-
+    protected $redisObj;
     public function __construct()
     {
         parent::__construct();
@@ -79,7 +79,7 @@ class CommentController extends CommonController
         $where['comment_id'] = $comment_id;
         $comment = $this->commentModel->getData($where);
         $save['is_delete'] = '1';
-        if ($this->articleModel->editData($where, $save)) {
+        if ($this->commentModel->editData($where, $save)) {
             $this->articleModel->Desec($data['article_id'], 'comment');
             return true;
         } else {
@@ -150,12 +150,29 @@ class CommentController extends CommonController
      */
     private function dealParam(&$data)
     {
-        if (isset($data['article'])) {
-            $user = D('UserInfo')->getUserInfo($data['user_id']);
-            $data['article']['user'] = $user;
+        if (empty($data)) {
+            return ;
         }
-        $user = D('UserInfo')->getUserInfo($data['user_id']);
-        $data['user'] = $user;
+        $user_id = session('plat_user_id');
+        if (isset($data['article'])) {
+            if($data['article']['is_delete']==1) {
+                $data['article'] = -1;
+            } else {
+                $user = D('UserInfo')->getUserInfo($data['article']['user_id']);
+                $data['article']['user'] = $user;
+            }
+        }
+        $data['user'] = D('UserInfo')->getUserInfo($data['user_id']);
+        if ($user_id == $data['user_id']) {
+            $data['user']['self'] = 1;
+        } else {
+            $data['user']['self'] = 0;
+            if ($this->isSubscribute($user_id, $data['user']['user_id'])) {
+                $data['user']['subscribe'] = 1;
+            } else {
+                $data['user']['subscribe'] = 0;
+            }
+        }
         $where['comment_id'] = $data['comment_id'];
         $data['thumbs'] = $this->commentThumbModel->getCount($where);
         $where['user_id'] = session('plat_user_id');
@@ -164,8 +181,12 @@ class CommentController extends CommonController
         $this->commentThumbModel->getData($where) && $data['is_thumb'] = 1;
         if ($data['pid']) {
             $data['pid'] = $this->commentModel->getData($data['pid']);
-            $user = D('UserInfo')->getUserInfo($data['pid']['user_id']);
-            $data['pid']['user'] = $user;
+            if (empty($data['pid'])){
+                $data['pid'] = -1;
+            }else {
+                $user = D('UserInfo')->getUserInfo($data['pid']['user_id']);
+                $data['pid']['user'] = $user;
+            }
         }
         unset($data['modified_time']);
         unset($data['is_delete']);

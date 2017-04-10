@@ -19,6 +19,54 @@ class ReceiveController extends OauthApiController
         $this->wxBizMsgCrypt = new \Common\Common\wxBizMsgCrypt(C('TOKEN'), C('ENCODINGAESKEY'), C('COMPONENT_APPID'));
     }
 
+    /**
+     * 发送授权成功通知
+     */
+    private function sendNotive($publicInfo, $plat_user_id)
+    {
+        $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';
+        $openid = D('Base/User')->where(['user_id'=>$plat_user_id])->getField('new_openid');
+        $array=[
+            'openid'=> $openid,
+            'url'=> $url,
+            'first'=>"已通过运营者认证，很高兴遇见你
+                     ",
+            'keyword1'=>'运营者身份（'.$publicInfo['nick_name'].'）',
+            'keyword2'=>'认证成功',
+            'remark'=>'
+点此进入新媒圈'
+        ];
+        $obj = new \Base\Controller\WetchatApiController();
+        $obj->publicId = 'gh_243fe4c4141f';
+        $obj->setAuthTemplate($array);
+    }
+
+    /**
+     * 取消授权通知
+     * @param string
+     */
+    private function unauthNotive($authorizerAppid)
+    {
+        $public = M('kdgx_plat_public')->where(array('authorizer_appid'=>$authorizerAppid))->find();
+        $users = M('kdgx_plat_user')->field('new_openid')->where(array('login_public'=>$public['user_name']))->select();
+        $url = 'http://'.$_SERVER['HTTP_HOST'].'/index.php/Wap/index/index#/binding';
+        foreach ($users as $user) {
+            $array=[
+                'openid'=> $user['new_openid'],
+                'url'=> $url,
+                'first'=>"您管理的公众号被取消授权
+                        ",
+                'keyword1'=>'运营者身份（'.$public['nick_name'].'）',
+                'keyword2'=>'取消认证',
+                'remark'=>'
+点此进入新媒圈'
+            ];
+            $obj = new \Base\Controller\WetchatApiController();
+            $obj->publicId = 'gh_243fe4c4141f';
+            $obj->setAuthTemplate($array);
+        }
+    }
+
     // ticket组件/授权/取消授权事件通知接口
     public function Auth()
     {
@@ -35,32 +83,37 @@ class ReceiveController extends OauthApiController
                 case 'unauthorized': // 取消授权
                     $state = 0;
                     M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$param['AuthorizerAppid']))->save(array('authorization_state'=>$state));
+                    $this->unauthNotive($param['AuthorizerAppid']);
                     break;
                 case 'authorized': // 授权成功
                     $sql = "INSERT INTO kdgx_plat_authorizer (authorizer_appid,authorization_code,authorizer_code_expires_in,authorization_state) VALUES('"
                     .$param['AuthorizerAppid']."','"
                     .$param['AuthorizationCode']."',"
-                    .$param['AuthorizationCodeExpiredTime'].",'1') ON DUPLICATE KEY UPDATE authorization_state='1'";
+                    .$param['AuthorizationCodeExpiredTime'].",'1') 
+                    ON DUPLICATE KEY UPDATE 
+                    authorization_code='".$param['AuthorizationCode']."',
+                    authorizer_code_expires_in=".$param['AuthorizationCodeExpiredTime'].",
+                    authorization_state='1'";
+                    $log = '---------authorized-----------\r\n'.date('Y-m-d H:i:s') .$sql;
+                    file_put_contents('auth.log', $log, FILE_APPEND);
                     M()->execute($sql);
+                    $this->getCodeAuths($param['AuthorizationCode']);
+                    $this->getPublicInfo($param['AuthorizerAppid']);
                     break;
-                case 'uodateauthorized': // 更新授权
-                    file_put_contents('auth.log', 'update', FILE_APPEND);
-                    if (M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$param['AuthorizerAppid']))->find()) {
-                        $save = array(
-                        'authorization_code'=>$param['AuthorizationCode'],
-                        'authorizer_code_expires_in'=>$param['AuthorizationCodeExpiredTime'],
-                        'authorization_code' => '1'
-                            );
-                        M('kdgx_plat_authorizer')->where(array('authorizer_appid'=>$param['AuthorizerAppid']))->save($save);
-                        file_put_contents('auth.log', M('kdgx_plat_authorizer')->getLastSql(), FILE_APPEND);
-                        file_put_contents('auth.log', M('kdgx_plat_authorizer')->getError(), FILE_APPEND);
-                    } else {
-                        $sql = "INSERT INTO kdgx_plat_authorizer (authorizer_appid,authorization_code,authorizer_code_expires_in,authorization_state) VALUES('"
-                        .$param['AuthorizerAppid']."','"
-                        .$param['AuthorizationCode']."',"
-                        .$param['AuthorizationCodeExpiredTime'].",'1') ON DUPLICATE KEY UPDATE authorization_state='1'";
-                        M()->execute($sql);
-                    }
+                case 'updateauthorized': // 更新授权
+                    $sql = "INSERT INTO kdgx_plat_authorizer (authorizer_appid,authorization_code,authorizer_code_expires_in,authorization_state) VALUES('"
+                    .$param['AuthorizerAppid']."','"
+                    .$param['AuthorizationCode']."',"
+                    .$param['AuthorizationCodeExpiredTime'].",'1') 
+                    ON DUPLICATE KEY UPDATE 
+                    authorization_code='".$param['AuthorizationCode']."',
+                    authorizer_code_expires_in=".$param['AuthorizationCodeExpiredTime'].",
+                    authorization_state='1'";
+                    $log = '---------updateauthorized-----------\r\n'.date('Y-m-d H:i:s') .$sql;
+                    file_put_contents('auth.log', $log, FILE_APPEND);
+                    M()->execute($sql);
+                    $this->getCodeAuths($param['AuthorizationCode']);
+                    $this->getPublicInfo($param['AuthorizerAppid']);
                     break;
             }
             echo 'success';
@@ -136,24 +189,21 @@ class ReceiveController extends OauthApiController
         if (empty($response['authorizer_appid'])) {
             $this->urlRedirect(U('Base/Receive/authorizer_access_token'));
         }
-        // $response['authorization_info']['authorizer_appid'] = 'wx5e843e96fc152d10';
         $publicInfo = $this->getPublicInfo($response['authorizer_appid']);
         $plat_user_id = session('plat_user_id');
 
         if (!empty($plat_user_id)) {
             A('User/PublicUser')->addPublicList($publicInfo['user_name'], $plat_user_id);
             D('Base/PublicUser')->setPublicAdminMain($publicInfo['user_name'], $plat_user_id);
-            if (ismobile()) {
-                $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';
-                $this->urlRedirect($url);
-            } else {
-                $url = 'http://'.$_SERVER['HTTP_HOST'].'/Home/Index';
-                $this->urlRedirect($url);
-            }
-        } elseif(ismobile()) {
-            $this->urlRedirect(U('Wap/Index/index'));
+            D('User')->where(array('user_id'=>$plat_user_id))->save(array('login_public'=>$publicInfo['user_name']));
+            $this->sendNotive($publicInfo, $plat_user_id);
+        }
+        if(ismobile()) {
+            $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';
+            $this->urlRedirect($url);
         } else {
-           $this->urlRedirect(U('Home/Index/Index')); 
+            $url = 'http://'.$_SERVER['HTTP_HOST'].'/Home/Index';
+            $this->urlRedirect($url); 
         }
     }
 

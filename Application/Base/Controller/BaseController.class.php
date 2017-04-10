@@ -77,7 +77,7 @@ class BaseController extends Controller
                 <ToUserName><![CDATA[%s]]></ToUserName>
                 <FromUserName><![CDATA[%s]]></FromUserName>
                 <CreateTime>%s</CreateTime>
-                <MsgType><![CDATA[%s]]></MsgType>
+                <MsgType><![CDATA[news]]></MsgType>
                 <ArticleCount>%s</ArticleCount>
                 <Articles>
                 <item>

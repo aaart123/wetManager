@@ -14,6 +14,7 @@ class ArticleThumbViewModel extends ViewModel
             '_table' => 'kdgx_social_article',
             '_as' => 'a',
             '_on' => 't.article_id=a.article_id',
+            'article_id',
             'create_time' => 'create_time',
             'user_id',
             'content',
@@ -24,10 +25,11 @@ class ArticleThumbViewModel extends ViewModel
         ]
     );
 
-    public function getAll($where = array())
+    public function getAll($where = array(), $page)
     {
         $where['a.is_delete'] = '0';
-        $data = $this->where($where)->order('a.create_time desc')->select();
+        $limit = ($page-1) * 20;
+        $data = $this->where($where)->order('a.create_time desc')->limit($limit, 20)->select();
         return $data;
     }
 

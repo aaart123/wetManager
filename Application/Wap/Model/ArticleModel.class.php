@@ -26,10 +26,11 @@ class ArticleModel extends BaseModel
         return $this->where($where)->save();
     }
 
-    public function getAll($where = array())
+    public function getAll($where = array(), $page = 1)
     {
         $where['is_delete'] = '0';
-        $articles = $this->where($where)->order('create_time desc')->select();
+        $limit = ($page-1) * 20;
+        $articles = $this->where($where)->order('create_time desc')->limit($limit, 20)->select();
         return $articles;
     }
 

@@ -5,6 +5,7 @@ use Base\Controller\CommonController;
 
 use Message\Controller\MessageController;
 use App\Controller\AppController;
+use Event\Controller\SubscribeController;
 
 /**
  * 消息体处理类
@@ -54,8 +55,11 @@ class MsgController extends CommonController
                 return;
             case 'event':       # 事件
                 switch ($param['Event']) {
+                    case 'SCAN': #参数二维码事件
+                        return $this->subscribeEvent($param);
                     case 'subscribe':   # 订阅事件
                         if (isset($param['EventKey'])) {  # 参数二维码订阅事件
+                            return $this->subscribeEvent($param);
                         }
                         return $this->distributeEvent($param);
                     case 'unsubscribe': # 取消订阅事件
@@ -139,5 +143,19 @@ class MsgController extends CommonController
             echo 'success';
             exit;
         }
+    }
+
+    public function subscribeEvent($param)
+    {
+        // file_put_contents('qr.log', print_r($param, true));
+        // $param = [
+        //     'ToUserName' => 'gh_243fe4c4141f',
+        //     'FromUserName' => 'oyTk8w_oR1OIr4U-OWE1g1YJ4q7A',
+        //     'EventKey' => 'newMediaWap'
+        // ];
+        $subscribute = new SubscribeController();
+        $replayMsg = $subscribute->parseQRcode($param);
+        // echo $replayMsg;exit;
+        $this->sendMsg($replayMsg);
     }
 }

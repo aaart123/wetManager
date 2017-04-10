@@ -10,17 +10,20 @@ use Wap\Controller\CommentController;
 /**
  * 路由管理
  */
-class HttpController extends BaseController
+class HttpController extends Controller
 {
     private $articleActivity;
     private $commentActivity;
     private $user_id;
+    private $public_id;
 
     public function __construct()
     {
         parent::__construct();
-        // session('plat_user_id', 3);
+        // session('plat_user_id', 2);
+        // session('plat_public_id', 'gh_c75321282c18');
         $this->user_id = session('plat_user_id');
+        $this->public_id = session('plat_public_id');
         $this->articleActivity = new ArticleController();
         $this->commentActivity = new CommentController();
     }
@@ -41,6 +44,7 @@ class HttpController extends BaseController
             //     'url' => 'http://www.外链.com'
             // ];
         $post['user_id'] = $this->user_id;
+        $post['publicname'] = $this->public_id;
         if ($article_id = $this->articleActivity->createArticle($post)) {
             echo json_encode([
             'errcode' => 0,
@@ -90,8 +94,21 @@ class HttpController extends BaseController
     public function getArticleList()
     {
         // 获取最新列表
-            // http://www.koudaidaxue.com/index.php/wap/http/getArticleList
-        $list = $this->articleActivity->getNewList($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getArticleList?page=1
+        $page = I('get.page',1);
+        $list = $this->articleActivity->getNewList($page);
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $list
+        ]);
+        exit;
+    }
+
+    public function getHotList()
+    {
+        // 获取最热动态
+            // http://www.koudaidaxue.com/index.php/wap/http/getHotList
+        $list = $this->articleActivity->getHotList();
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -102,8 +119,9 @@ class HttpController extends BaseController
     public function getWeightList()
     {
         // 获取加权列表
-            // http://www.koudaidaxue.com/index.php/wap/http/getWeightList
-        $list = $this->articleActivity->getWeightList($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getWeightList?page=1
+        $page = I('get.page', 1);
+        $list = $this->articleActivity->getWeightList($this->user_id, $page);
         usort($list, descSort('weight'));
         echo json_encode([
             'errcode' => 0,
@@ -115,8 +133,9 @@ class HttpController extends BaseController
     public function getSubscribeList()
     {
         // 获取关注动态
-            // http://www.koudaidaxue.com/index.php/wap/http/getSubscribeList
-        $list = $this->articleActivity->getSubscribeArticle($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getSubscribeList?page=1
+        $page = I('get.page',1);
+        $list = $this->articleActivity->getSubscribeArticle($this->user_id, $page);
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -127,8 +146,9 @@ class HttpController extends BaseController
     public function getThumbList()
     {
         // 获取喜欢动态
-            // http://www.koudaidaxue.com/index.php/wap/http/getThumbList
-        $list = $this->articleActivity->getThumbArticle($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getThumbList?page=1
+        $page = I('get.page',1);
+        $list = $this->articleActivity->getThumbArticle($this->user_id, $page);
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -237,7 +257,7 @@ class HttpController extends BaseController
     public function selfRelate()
     {
         // 个人相关动态(发布的圈子;发布的评论;文章被评论)无user_id参数则表示自己
-            // http://www.koudaidaxue.com/index.php/wap/http/selfRelate?user_id=3
+            // http://www.koudaidaxue.com/index.php/wap/http/selfRelate?user_id=2
         $user_id = I('get.user_id',$this->user_id);
         $articleList = $this->articleActivity->getSelfList($user_id);
         $isCommentList = $this->commentActivity->getIsCommentList($user_id);
@@ -253,9 +273,10 @@ class HttpController extends BaseController
     
     public function getSelfList()
     {
+        $user_id = I('get.user_id',$this->user_id);
         // 获取某人发布的动态列表
-            // http://www.koudaidaxue.com/index.php/wap/http/getSelfList
-        $list = $this->articleActivity->getSelfList($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getSelfList?user_id=2
+        $list = $this->articleActivity->getSelfList($user_id);
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -265,9 +286,10 @@ class HttpController extends BaseController
 
     public function getIsCommentList()
     {
+        $user_id = I('get.user_id',$this->user_id);
         // 评论个人文章的评论
-            // http://www.koudaidaxue.com/index.php/wap/http/getIsCommentList
-        $list = $this->commentActivity->getIsCommentList($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getIsCommentList?user_id=2
+        $list = $this->commentActivity->getIsCommentList($user_id);
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list
@@ -277,9 +299,10 @@ class HttpController extends BaseController
 
     public function getSelfCommentList()
     {
+        $user_id = I('get.user_id',$this->user_id);
         // 获取某人发表的评论
-            // http://www.koudaidaxue.com/index.php/wap/http/getSelfCommentList
-        $list = $this->commentActivity->getSelfList($this->user_id);
+            // http://www.koudaidaxue.com/index.php/wap/http/getSelfCommentList?user_id=2
+        $list = $this->commentActivity->getSelfList($user_id);
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list

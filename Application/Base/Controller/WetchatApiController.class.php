@@ -268,7 +268,6 @@ class WetchatApiController extends BaseController
             "end_date": "2017-03-11"
         }';
         $response = json_decode(httpRequest($url, $data));
-        var_dump($response);
     }
 
     /**
@@ -284,7 +283,6 @@ class WetchatApiController extends BaseController
             "end_date": "2017-03-11"
         }';
         $response = json_decode(httpRequest($url, $data));
-        var_dump($response);
     }
 
     /**
@@ -300,7 +298,6 @@ class WetchatApiController extends BaseController
             "end_date": "2017-03-11"
         }';
         $response = json_decode(httpRequest($url, $data));
-        print_r($response);
     }
 
     /**
@@ -315,7 +312,6 @@ class WetchatApiController extends BaseController
             "end_date": ""
         }';
         $response = json_decode(httpRequest($url, $data));
-        print_r($response);
     }
 
     /**
@@ -329,8 +325,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -344,8 +339,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data)); 
     }
 
     /**
@@ -359,8 +353,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -374,8 +367,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -389,8 +381,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -404,8 +395,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));  
     }
 
     /**
@@ -419,8 +409,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));  
     }
 
     /**
@@ -434,8 +423,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -449,8 +437,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -464,8 +451,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -479,8 +465,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -494,8 +479,7 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
 
     /**
@@ -509,8 +493,45 @@ class WetchatApiController extends BaseController
             "begin_date": "",
             "end_date": ""
         }';
-        $response = json_decode(httpRequest($url, $data));
-        print_r($response);   
+        $response = json_decode(httpRequest($url, $data));   
     }
+
+/* ------------------------------------------  账户管理      ---------------------------------------------------------- */
+    /**
+     * 创建二维码ticket
+     */
+    private function getQticket()
+    {
+        $token = $this->getAccessToken();
+        $url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={$token}";
+        $data = '{
+            "action_name":"QR_LIMIT_STR_SCENE",
+            "action_info":{
+                "scene":{
+                    "scene_str":"newMediaWap"
+                    }
+                }   
+        }';
+        $response = json_decode(httpRequest($url, $data));
+        if (isset($response->errcode)) {
+            return false;
+        }
+        return $response->ticket;
+    }
+
+    /**
+     * 生成永久二维码
+     */
+    public function getQRCode()
+    {
+        $this->publicId = 'gh_243fe4c4141f';
+        $ticket = $this->getQticket();
+        $ticket = urldecode($ticket);
+        $url = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket={$ticket}";
+        $QRcode = httpRequest($url);
+        header('Content-type:image/jpg');
+        echo $QRcode;
+    }
+
 
 }

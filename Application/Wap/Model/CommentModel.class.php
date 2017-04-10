@@ -23,7 +23,7 @@ class CommentModel extends RelationModel
         'article' => [
             'mapping_type' => self::BELONGS_TO,
             'mapping_name' => 'article',
-            'mapping_fields' => 'article_id, create_time, user_id, content',
+            'mapping_fields' => 'article_id, create_time, user_id, content, is_delete',
             'class_name'   => 'Article',
             'foreign_key'   => 'article_id'
         ]
@@ -52,16 +52,17 @@ class CommentModel extends RelationModel
         return $this->where($where)->save();
     }
 
-    public function getAll($where = array())
+    public function getAll($where = array(), $page = 1)
     {
         $where['is_delete'] = '0';
-        $articles = $this->where($where)->order('create_time desc')->select();
+        $limit = ($page-1) * 20;
+        $articles = $this->where($where)->order('create_time desc')->limit($limit, 20)->select();
         return $articles;
     }
 
-    public function getData($comment_id)
+    public function getData($comment_id, $all = true)
     {
-        $where['is_delete'] = '0';
+        $all && $where['is_delete'] = '0';
         $where['comment_id'] = $comment_id;
         $article = $this->where($where)->find();
         return $article;
