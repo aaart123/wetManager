@@ -254,12 +254,14 @@ class ArticleController extends CommonController
         if (empty($data)) {
             return;
         }
+        /* --------------------- 点赞状态处理 -------------------*/
         $user_id = session('plat_user_id');
         $data['is_thumb'] = 0;
         $where['article_id'] = $data['article_id'];
         $where['user_id'] = $user_id;
         $where['state'] = 1;
         $this->articleThumbModel->getData($where) && $data['is_thumb'] = 1;
+        /* --------------------- 关注状态处理 -------------------*/
         $data['user'] = D('UserInfo')->getUserInfo($data['user_id']);
         if ($user_id == $data['user_id']) {
             $data['user']['self'] = 1;
@@ -271,6 +273,7 @@ class ArticleController extends CommonController
                 $data['user']['subscribe'] = 0;
             }
         }
+        /* --------------------- 图片和公众号处理 -------------------*/
         if (!empty($data['publicname'])) {
             $data['user']['publicname'] = $data['publicname'];
         }
@@ -282,6 +285,7 @@ class ArticleController extends CommonController
             }
             $data['imgs'] = $imgs;
         }
+        /* --------------------- 过滤数据 -------------------*/
         unset($data['publicname']);
         unset($data['modified_time']);
         unset($data['is_delete']);

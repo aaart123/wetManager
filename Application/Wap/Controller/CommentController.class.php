@@ -139,7 +139,7 @@ class CommentController extends CommonController
      public function getReplyCommentList($user_id)
      {
          $sql = "SELECT * FROM `pocket`.`kdgx_social_comment` where is_delete = '0' and `pid` in 
-                    (select `comment_id` from `kdgx_social_comment`WHERE `user_id`= ".$user_id.")";
+                (select `comment_id` from `kdgx_social_comment`WHERE `user_id`= ".$user_id.")";
         $comments = $this->commentView->query($sql);
         foreach($comments as &$comment) {
             $this->dealParam($comment);
@@ -190,8 +190,9 @@ class CommentController extends CommonController
     private function dealParam(&$data)
     {
         if (empty($data)) {
-            return ;
+            return;
         }
+        /* --------------- 获取评论文章数据 -------------------*/
         $user_id = session('plat_user_id');
         if (isset($data['article'])) {
             if($data['article']['is_delete']==1) {
@@ -201,7 +202,7 @@ class CommentController extends CommonController
                 $data['article']['user'] = $user;
             }
         }
-
+        /* --------------- 关注状态处理 -------------------*/
         $data['user'] = D('UserInfo')->getUserInfo($data['user_id']);
         if ($user_id == $data['user_id']) {
             $data['user']['self'] = 1;
@@ -213,14 +214,14 @@ class CommentController extends CommonController
                 $data['user']['subscribe'] = 0;
             }
         }
-
+        /* --------------- 评论点赞状态处理 -------------------*/
         $where['comment_id'] = $data['comment_id'];
         $data['thumbs'] = $this->commentThumbModel->getCount($where);
         $where['user_id'] = $user_id;
         $where['state'] = 1;
         $data['is_thumb'] = 0;
-
         $this->commentThumbModel->getData($where) && $data['is_thumb'] = 1;
+        /* --------------- 获取父评论信息 -------------------*/
         if ($data['pid']) {
             $data['pid'] = $this->commentModel->getData($data['pid']);
             if (empty($data['pid'])){
@@ -230,6 +231,7 @@ class CommentController extends CommonController
                 $data['pid']['user'] = $user;
             }
         }
+        /* --------------- 过滤数据 -------------------*/
         unset($data['modified_time']);
         unset($data['is_delete']);
         unset($data['user_id']);

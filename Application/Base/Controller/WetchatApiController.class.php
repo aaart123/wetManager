@@ -7,17 +7,6 @@ use Base\Controller\OauthApiController;
 // 口袋高校第三方开发核心类
 class WetchatApiController extends BaseController
 {
-
-    public function __construct()
-    {
-        parent:: __construct();
-    }
-
-    public function __set($name, $value)
-    {
-        $this->$name = $value;
-    }
-
     /**
      * 通过public_id获取access_token
      * @param string public_id
@@ -30,7 +19,7 @@ class WetchatApiController extends BaseController
         return $oauthApi->getAuths($appId);
     }
 
-/********************************************  消息管理API   ***********************************************************/
+/* ------------------------------------------  消息管理API   ---------------------------------------------------------- */
     public function casekfMessage()
     {
         $param = file_get_contents('kf.log');
@@ -71,7 +60,7 @@ class WetchatApiController extends BaseController
             exit();
         }
     }
-/********************************************  用户管理API   ***********************************************************/
+/* ------------------------------------------  用户管理API   ---------------------------------------------------------- */
     /**
      * 获取用户基本信息
      * @param string appid
@@ -150,7 +139,7 @@ class WetchatApiController extends BaseController
         }
         return true;
     }
-/********************************************  自定义菜单API ***********************************************************/
+/* ------------------------------------------  自定义菜单API ---------------------------------------------------------- */
     
     /**
      * 创建菜单
@@ -196,7 +185,7 @@ class WetchatApiController extends BaseController
         return $data['selfmenu_info'];
     }
 
-/********************************************  素材管理API   ***********************************************************/
+/* ------------------------------------------  素材管理API   ---------------------------------------------------------- */
     /**
      * 获取素材列表
      * @param string 公众号id
@@ -500,15 +489,16 @@ class WetchatApiController extends BaseController
     /**
      * 创建二维码ticket
      */
-    private function getQticket()
+    private function getQticket($scene = array())
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={$token}";
         $data = '{
-            "action_name":"QR_LIMIT_STR_SCENE",
+            "expire_seconds": '.$scene['expire'].',
+            "action_name":"'.$scene['action'].'",
             "action_info":{
                 "scene":{
-                    "scene_str":"newMediaWap"
+                    "'.$scene['key'].'":'.$scene['scene'].'
                     }
                 }   
         }';
@@ -519,13 +509,40 @@ class WetchatApiController extends BaseController
         return $response->ticket;
     }
 
-    /**
-     * 生成永久二维码
-     */
+    public function getAction()
+    {
+        // http://www.koudaidaxue.com/base/wetchatApi/getAction
+        $data['state'] = 0;
+        $actionModel = D('Action');
+        $action_id = $actionModel->addData($data);
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $action_id
+        ]);
+        exit;
+    }
+
     public function getQRCode()
     {
+        // 生成二维码type:(1:临时;2:永久;3:永久字符串);
+            // http://www.koudaidaxue.com/base/wetchatApi/getQRCode?action_name=1&action=24
+        $action_name = I('get.action_name',1);
+        $action = I('get.action',10);
         $this->publicId = 'gh_243fe4c4141f';
-        $ticket = $this->getQticket();
+        $actions = ['QR_SCENE', 'QR_LIMIT_SCENE', 'QR_LIMIT_STR_SCENE'];
+        switch ($action_name) {
+            case 1:
+                $scene['action'] = $actions[$action_name-1];
+                $scene['key'] = 'scene_id';
+                $scene['expire'] = 300;
+                $scene['scene'] = '10'.$action;
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+        }
+        $ticket = $this->getQticket($scene);
         $ticket = urldecode($ticket);
         $url = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket={$ticket}";
         $QRcode = httpRequest($url);
