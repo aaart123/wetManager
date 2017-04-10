@@ -8,6 +8,7 @@ use Wap\Model\ArticleModel;
 use Wap\Model\CommentModel;
 use Wap\Model\CommentThumbModel;
 use Wap\Model\CommentViewModel;
+use Wap\Model\CommentReadModel;
 
 /**
  * 评论管理
@@ -125,9 +126,26 @@ class CommentController extends CommonController
          $where['a.user_id'] = $user_id;
          $comments = $this->commentView->getAll($where);
          foreach ($comments as &$comment) {
-            $this->dealParam($comment);  
+            $this->dealParam($comment); 
+            $this->isRead($comment);
          }
          return $comments;
+     }
+
+     /**
+      * 获取回复信息
+      * @param int
+      */
+     public function getReplyCommentList($user_id)
+     {
+         $sql = "SELECT * FROM `pocket`.`kdgx_social_comment` where is_delete = '0' and `pid` in 
+                    (select `comment_id` from `kdgx_social_comment`WHERE `user_id`= ".$user_id.")";
+        $comments = $this->commentView->query($sql);
+        foreach($comments as &$comment) {
+            $this->dealParam($comment);
+            $this->isRead($comment);
+        }
+        return $comments;
      }
 
     /**
@@ -142,6 +160,27 @@ class CommentController extends CommonController
         unset($comment['pid']);
         $this->dealParam($comment);
         return $comment;
+    }
+
+    /**
+     * 处理消息是否被读取过
+     */
+    private function isRead(&$data)
+    {        
+        if (empty($data) && !$data['pid']) {
+            return ;
+        }
+        $user_id = session('plat_user_id');
+        $commentReadModel = new CommentReadModel();
+        $where = [
+            'user_id' => $user_id,
+            'comment_id' => $data['pid']
+        ];
+        if ($commentReadModel->getData($where)) {
+            $data['read'] = 1;
+        } else {
+            $data['read'] = 0;
+        }
     }
 
     /**
@@ -162,6 +201,7 @@ class CommentController extends CommonController
                 $data['article']['user'] = $user;
             }
         }
+
         $data['user'] = D('UserInfo')->getUserInfo($data['user_id']);
         if ($user_id == $data['user_id']) {
             $data['user']['self'] = 1;
@@ -173,11 +213,13 @@ class CommentController extends CommonController
                 $data['user']['subscribe'] = 0;
             }
         }
+
         $where['comment_id'] = $data['comment_id'];
         $data['thumbs'] = $this->commentThumbModel->getCount($where);
-        $where['user_id'] = session('plat_user_id');
+        $where['user_id'] = $user_id;
         $where['state'] = 1;
         $data['is_thumb'] = 0;
+
         $this->commentThumbModel->getData($where) && $data['is_thumb'] = 1;
         if ($data['pid']) {
             $data['pid'] = $this->commentModel->getData($data['pid']);

@@ -10,7 +10,7 @@ use Wap\Controller\CommentController;
 /**
  * 路由管理
  */
-class HttpController extends Controller
+class HttpController extends BaseController
 {
     private $articleActivity;
     private $commentActivity;
@@ -256,13 +256,27 @@ class HttpController extends Controller
 
     public function selfRelate()
     {
-        // 个人相关动态(发布的圈子;发布的评论;文章被评论)无user_id参数则表示自己
+        // 个人相关动态(发布的圈子;发布的评论)无user_id参数则表示自己
             // http://www.koudaidaxue.com/index.php/wap/http/selfRelate?user_id=2
         $user_id = I('get.user_id',$this->user_id);
         $articleList = $this->articleActivity->getSelfList($user_id);
-        $isCommentList = $this->commentActivity->getIsCommentList($user_id);
         $commentList = $this->commentActivity->getSelfList($user_id);
-        $list = array_merge($articleList, $isCommentList, $commentList);
+        $list = array_merge($articleList, $commentList);
+        usort($list, descSort('create_time'));
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $list
+        ]);
+        exit;
+    }
+
+    public function selfMsg()
+    {
+        // 消息中心
+            // http://www.koudaidaxue.com/index.php/wap/http/selfMsg
+        $articleIsComments = $this->commentActivity->getIsCommentList($this->user_id);
+        $replyComments = $this->commentActivity->getReplyCommentList($this->user_id);
+        $list = array_merge($articleIsComments, $replyComments);
         usort($list, descSort('create_time'));
         echo json_encode([
             'errcode' => 0,
