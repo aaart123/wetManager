@@ -2,6 +2,7 @@
 namespace Base\Controller;
 
 use \Base\Controller\OauthApiController;
+use \Base\Controller\WetchatApiController;
 
 // 第三方服务事件接收类
 class ReceiveController extends OauthApiController
@@ -25,7 +26,7 @@ class ReceiveController extends OauthApiController
     private function sendNotive($publicInfo, $plat_user_id)
     {
         $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';
-        $openid = D('Base/User')->where(['user_id'=>$plat_user_id])->getField('new_openid');
+        $openid = D('Base/User')->where(['user_id'=>$plat_user_id])->getField('openid');
         $array=[
             'openid'=> $openid,
             'url'=> $url,
@@ -36,7 +37,7 @@ class ReceiveController extends OauthApiController
             'remark'=>'
 点此进入新媒圈'
         ];
-        $obj = new \Base\Controller\WetchatApiController();
+        $obj = new WetchatApiController();
         $obj->publicId = 'gh_243fe4c4141f';
         $obj->setAuthTemplate($array);
     }
@@ -48,11 +49,11 @@ class ReceiveController extends OauthApiController
     private function unauthNotive($authorizerAppid)
     {
         $public = M('kdgx_plat_public')->where(array('authorizer_appid'=>$authorizerAppid))->find();
-        $users = M('kdgx_plat_user')->field('new_openid')->where(array('login_public'=>$public['user_name']))->select();
+        $users = M('kdgx_plat_user')->field('openid')->where(array('login_public'=>$public['user_name']))->select();
         $url = 'http://'.$_SERVER['HTTP_HOST'].'/index.php/Wap/index/index#/binding';
         foreach ($users as $user) {
             $array=[
-                'openid'=> $user['new_openid'],
+                'openid'=> $user['openid'],
                 'url'=> $url,
                 'first'=>"您管理的公众号被取消授权
                         ",
@@ -195,10 +196,12 @@ class ReceiveController extends OauthApiController
         if (!empty($plat_user_id)) {
             A('User/PublicUser')->addPublicList($publicInfo['user_name'], $plat_user_id);
             D('Base/PublicUser')->setPublicAdminMain($publicInfo['user_name'], $plat_user_id);
+            
             D('User')->where(array('user_id'=>$plat_user_id))->save(array('login_public'=>$publicInfo['user_name']));
             $this->sendNotive($publicInfo, $plat_user_id);
         }
         if(ismobile()) {
+            D('Conf')->where(array('user_id'=>$plat_user_id))->save(array('login_public'=>$publicInfo['user_name']));
             $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';
             $this->urlRedirect($url);
         } else {

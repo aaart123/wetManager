@@ -140,10 +140,10 @@ class CommentController extends CommonController
      {
          $sql = "SELECT * FROM `pocket`.`kdgx_social_comment` where is_delete = '0' and `pid` in 
                 (select `comment_id` from `kdgx_social_comment`WHERE `user_id`= ".$user_id.")";
-        $comments = $this->commentView->query($sql);
+        $comments = $this->commentModel->query($sql);
         foreach($comments as &$comment) {
+			$this->isRead($comment);
             $this->dealParam($comment);
-            $this->isRead($comment);
         }
         return $comments;
      }
@@ -162,6 +162,21 @@ class CommentController extends CommonController
         return $comment;
     }
 
+	/**
+	 * 添加消息读记录
+	 * @param int
+	 */
+	public function readComment($comment_id)
+	{
+		$user_id = session('plat_user_id');
+        $commentReadModel = new CommentReadModel();
+        $data = [
+            'user_id' => $user_id,
+            'comment_id' => $comment_id
+        ];
+		return $commentReadModel->addData($data);
+	}
+
     /**
      * 处理消息是否被读取过
      */
@@ -170,11 +185,14 @@ class CommentController extends CommonController
         if (empty($data) && !$data['pid']) {
             return ;
         }
+		
+		$data['article'] = $this->articleModel->getData($data['article_id']);
+		
         $user_id = session('plat_user_id');
         $commentReadModel = new CommentReadModel();
         $where = [
             'user_id' => $user_id,
-            'comment_id' => $data['pid']
+            'comment_id' => $data['comment_id']
         ];
         if ($commentReadModel->getData($where)) {
             $data['read'] = 1;

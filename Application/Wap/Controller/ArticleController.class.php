@@ -29,7 +29,7 @@ class ArticleController extends CommonController
     {
         foreach ($openids as $openid) {
             $array=[
-                'openid'=> $openid['new_openid'],
+                'openid'=> $openid['openid'],
                 'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index#/detail?id='.$article_id.'&from=share',
                 'first'=>'你关注的媒体人有新动态
                          ',

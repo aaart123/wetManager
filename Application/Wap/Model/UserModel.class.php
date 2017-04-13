@@ -15,4 +15,11 @@ class UserModel extends BaseModel
 
     protected $tableName='kdgx_plat_user';
 
+
+    public function setData($where,$array)
+    {
+        $this->create($array);
+        return $this->where($where)->save();
+    }
+
 }

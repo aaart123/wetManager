@@ -12,14 +12,20 @@ use Think\Controller;
 
 class LoginController extends Controller
 {
-//    const APP_ID = 'wx3f6b8b2eb0483f2f';//微信分配的appID
-//    const APP_SECRET = '6861d005542696913ed31a9645690595';//微信分配的key
-    const APP_ID = 'wxe8b12da30f8ed757';//微信分配的appID
-    const APP_SECRET = '4a266d702e91408183772dcd3a774dfc';//微信分配的key
+    const APP_ID = 'wx3f6b8b2eb0483f2f';//微信分配的appID
+    const APP_SECRET = '6861d005542696913ed31a9645690595';//微信分配的key
     
     function index()
     {
-        $this->display('Index/login');
+        if($_SESSION['wechat_info']['openid'])
+        {
+            $this->display('Index/login');
+        }else{
+            $url = 'http://www.koudaidaxue.com/index.php/Wap/Login/authWechat?aid='.$_GET['aid'];
+            $url = urlencode($url);
+            $http = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.self::APP_ID.'&redirect_uri='.$url.'&response_type=code&scope=snsapi_userinfo&state='.rand(1000,9999).'#wechat_redirect';
+            header('Location:'.$http);exit;
+        }
     }
 
 
@@ -30,17 +36,19 @@ class LoginController extends Controller
      */
     public function silentAuthWechat($url)
     {
+
+
         if($code = $_GET['code'] )
         {
             $http = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.self::APP_ID.'&secret='.self::APP_SECRET.'&code='.$code.'&grant_type=authorization_code';
             $json = https_request($http);
             $data = json_decode($json,true);
-            if( $userId = D('Base/User')->isOccupy(array('new_openid'=>$data['openid'])) )
+            if( $userId = D('Base/User')->isOccupy(array('openid'=>$data['openid'])) )
             {
                 $_SESSION['plat_user_id'] = $userId;
                 header('Location:'.$url);exit;
             }else{
-                $url = 'http://www.koudaidaxue.com/index.php/Wap/Login/authWechat';
+                $url = 'http://www.koudaidaxue.com/index.php/Wap/Login/authWechat?aid='.$_GET['aid'];
                 $url = urlencode($url);
                 $http = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='.self::APP_ID.'&redirect_uri='.$url.'&response_type=code&scope=snsapi_userinfo&state='.rand(1000,9999).'#wechat_redirect';
                 header('Location:'.$http);exit;
@@ -67,8 +75,10 @@ class LoginController extends Controller
             $json = https_request($http);
             $data = json_decode($json,true);
             $_SESSION['wechat_info'] = $data;
+            $this->display('Index/preview');exit;
             header('Location:'.'http://www.koudaidaxue.com/index.php/wap/Login/index#/register');exit;
     }
+
 
 
     /**
@@ -76,14 +86,17 @@ class LoginController extends Controller
      */
     public function getUserInfo()
     {
-        $data = array(
-            'nickname'=>$_SESSION['wechat_info']['nickname'],
-            'headimgurl'=>$_SESSION['wechat_info']['headimgurl'],
-        );
-        echo json_encode(array(
-            'errcode'=>0,
-            'errmsg'=>$data,
-        ));exit;
+
+            $data = array(
+                'nickname'=>$_SESSION['wechat_info']['nickname'],
+                'headimgurl'=>$_SESSION['wechat_info']['headimgurl'],
+            );
+            echo json_encode(array(
+                'errcode'=>0,
+                'errmsg'=>$data,
+            ));exit;
+
+
     }
 
 
@@ -107,40 +120,48 @@ class LoginController extends Controller
         }else {
             echo json_encode(array(
                 'errcode'	=> 1046,
-                'errmsg'=>'手机验证码发送失败',
+                'errmsg'=>'手机验证码发送频繁',
             ));exit();
         }
     }
 
 
-
-
-    public function banding()
+    /**
+     * 注册
+     */
+    public function reg()
     {
         $phone = $_POST['phone'];
         $code = $_POST['code'];
-
+        $password = $_POST['password'];
         if(md5($phone.$code)==session('phoneVerify'))
         {
-            $userId = D('Base/User')->where(array('phone'=>$phone))->getfield('user_id');
-            if( $userId )
+            if($userId = D('User')->where(array('phone'=>$phone))->getfield('user_id'))
             {
-                D('Base/User')->where(array('user_id'=>$userId))->setfield('new_openid',$_SESSION['wechat_info']['openid']);
-                $data = $_SESSION['wechat_info'];
-                $data['user_id'] = $userId;
-                D('UserInfo')->add($data,array(),true);
-                $_SESSION['plat_user_id'] = $userId;
                 echo json_encode(array(
-                    'errcode'=>0,
-                    'errmsg'=>'成功',
-                ));exit;
-            }else{
-                echo json_encode(array(
-                    'errcode'=>1,
-                    'errmsg'=>'没有注册！',
+                    'errcode'=>10002,
+                    'errmsg'=>'手机号已被绑定',
                 ));exit;
             }
 
+            $data =array(
+                'phone'=>$phone,
+                'openid'=>$_SESSION['wechat_info']['openid'],
+            );
+            $user = D('User');
+            $user->create($data);
+            $userId = $user->add();
+            $_SESSION['plat_user_id'] = $userId;
+
+            $data = $_SESSION['wechat_info'];
+            $data['user_id'] = $userId;
+            $userinfo = D('UserInfo');
+            $userinfo->create($data);
+            $userinfo->add();
+            echo json_encode(array(
+                'errcode'=>0,
+                'errmsg'=>'注册成功！'
+            ));exit;
         }else{
             echo json_encode(array(
                 'errcode'=>10001,
@@ -151,38 +172,14 @@ class LoginController extends Controller
 
 
 
-public function reg()
-{
-    $phone = $_POST['phone'];
-    $code = $_POST['code'];
-    $password = $_POST['password'];
-    if(md5($phone.$code)==session('phoneVerify'))
+    public function userCount()
     {
-        $data = array(
-            'phone'=>$phone,
-            'password'=>md5($password),
-            'new_openid'=>$_SESSION['wechat_info']['openid'],
-        );
-        $userId = D('Base/User')->add($data);
-        $data = $_SESSION['wechat_info'];
-        $data['user_id'] = $userId;
-        D('UserInfo')->add($data,array(),true);
-        $_SESSION['plat_user_id'] = $userId;
+        $count = D('user')->count();
         echo json_encode(array(
             'errcode'=>0,
-            'errmsg'=>'注册成功！',
-        ));exit;
-    }else{
-        echo json_encode(array(
-            'errcode'=>10001,
-            'errmsg'=>'验证码错误',
+            'errmsg'=>$count,
         ));exit;
     }
-
-
-}
-
-
 
 
 

@@ -234,6 +234,24 @@ class HttpController extends BaseController
         exit;
     }
 
+	public function readComment($comment_id)
+	{
+		// 读评论记录
+			// http://www.koudaidaxue.com/index.php/wap/http/readComment?comment_id=3
+		if ($this->commentActivity->readComment($comment_id) ) {
+			echo json_encode([
+				'errcode' => 0,
+				'errmsg' => '成功'
+			]);
+			exit;
+		} else {
+		    echo json_encode([
+                'errcode' => 1001,
+                'errmsg' => '失败'
+            ]);
+			exit;
+		}
+	}
     public function thumbComment($comment_id)
     {
         // 取消/点赞圈子文章

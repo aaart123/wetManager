@@ -21,9 +21,22 @@ class SubscribeModel extends Model
      */
     public function getSubScribeUserInfo($userId)
     {
-        $sql = 'SELECT u.`user_id`, u.`nickname` ,u.`sex` ,u.`headimgurl` FROM `pocket`.`kdgx_social_subscribe` AS s INNER JOIN `kdgx_user_info` AS u ON u.`user_id`= s.`subscribe_user` WHERE s.`user_id` ='.$userId;
+        $sql = 'SELECT  u.`user_id`,
+                        u.`nickname`,
+                        u.`sex`,
+                        u.`headimgurl`
+              FROM `pocket`.`kdgx_social_subscribe` AS s
+              INNER JOIN `kdgx_user_info` AS u ON u.`user_id`= s.`subscribe_user`
+              WHERE s.`subscribe_state` =\'1\' AND s.`user_id`= '.$userId;
         $data['active'] = $this->query($sql);
-        $sql = 'SELECT u.`user_id`, u.`nickname` ,u.`sex` ,u.`headimgurl` FROM `pocket`.`kdgx_social_subscribe` AS s INNER JOIN `kdgx_user_info` AS u ON u.`user_id`= s.`user_id` WHERE s.`subscribe_user` ='.$userId;
+
+        $sql = 'SELECT  u.`user_id`,
+                        u.`nickname`,
+                        u.`sex`,
+                        u.`headimgurl`
+              FROM `pocket`.`kdgx_social_subscribe` AS s
+              INNER JOIN `kdgx_user_info` AS u ON u.`user_id`= s.`user_id`
+              WHERE s.`subscribe_state` =\'1\' AND s.`subscribe_user`='.$userId;
         $data['passive'] = $this->query($sql);
         return $data;
     }

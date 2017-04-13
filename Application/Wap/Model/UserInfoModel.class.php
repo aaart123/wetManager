@@ -16,6 +16,18 @@ class UserInfoModel extends BaseModel
     protected $tableName = 'kdgx_user_info';
 
 
+    public function setData($array)
+    {
+        if($this->where(array('user_id'=>$array['user_id']))->getField('user_id'))
+        {
+            $this->create($array,2);
+            return $this->save();
+        }else{
+            $this->create($array,1);
+            return $this->add();
+        }
+    }
+
 
 
     
