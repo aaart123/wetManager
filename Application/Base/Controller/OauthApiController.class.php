@@ -140,6 +140,15 @@ class OauthApiController extends BaseController
             );
             $this->publicModel->addData($data);
         }
+        $wapData = [
+            'nick_name' => $data['nick_name'],
+            'head_img' => $data['head_img'],
+            'alias' => $data['alias'],
+            'user_name' => $data['user_name'],
+            'qrcode_url' => $data['qrcode_url']
+        ];
+        $publicModel = new \Wap\Model\PublicModel();
+        $publicModel->addData($wapData);
         return $data;
     }
 

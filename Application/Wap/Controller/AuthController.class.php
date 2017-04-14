@@ -100,15 +100,37 @@ class AuthController extends BaseController
         }
     }
 
+    public function unAgreed($id)
+    {
+        // 不通过人工审核
+            // http://www.koudaidaxue.com/index.php/wap/auth/unAgreed?id=1
+            // $post = [
+            //     'reason' => '这是理由'       
+            // ];
+        if ($id = $this->ArtificialActivity->sendNotive($id, 0)) {
+            echo json_encode([
+            'errcode' => 0,
+            'errmsg' => '成功'
+            ]);
+            exit;
+        } else {
+            echo json_encode([
+            'errcode' => 1001,
+            'errmsg' => '失败'
+            ]);
+            exit;
+        }
+    }
+
     public function validatePublic()
     {
         $post = I('post.');
         // 验证公众号审核
             // http://www.koudaidaxue.com/index.php/wap/auth/validatePublic
-            $post = [
-                'secret' => '验证码',
-                'id' => 1
-            ];
+            // $post = [
+            //     'secret' => 'e3a9405eefc22911aa5dddec4322f323',
+            //     'id' => 10
+            // ];
         if ($id = $this->ArtificialActivity->validatePublic($post)) {
             echo json_encode([
             'errcode' => 0,

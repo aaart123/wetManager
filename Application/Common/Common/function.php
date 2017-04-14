@@ -225,3 +225,29 @@ function descSort($key)
         }
     };
 }
+
+
+/**
+ * 获取微信原始ID
+ * @param $public_id
+ * @return array
+ */
+function get_newrank_media_info($public_id){
+    $url="http://www.newrank.cn/public/info/detail.html?account=".$public_id;
+    $data=file_get_contents($url);
+    preg_match("/var fgkcdg =([\s\S]*?)var trendSize/",$data,$table);
+    $table = str_replace("\n","",$table);
+    $table = str_replace("\t","",$table);
+    $table = str_replace("</font>","",$table);
+    $table = preg_replace("'([rn])[s]+'","",$table);
+    $table = preg_replace('/&nbsp;/',"",$table);
+    $table = str_replace(";","",$table);
+    $json=$table[1];
+    $data=json_decode($json);
+    $data = array(
+        'nick_name'=>$data->name,
+        'user_name'=>$data->wx_id,
+        'alias'=>$data->account,
+    );
+    return $data;
+}

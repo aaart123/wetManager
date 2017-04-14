@@ -46,11 +46,14 @@ class PublicTempModel extends RelationModel
         return $this->where($where)->count();
     }
 
-    public function getAll($where = array())
+    public function getAll($where = array(), $type = 0)
     {
-        !isset($where['state']) && $where['state'] = ['neq',2];
+        $hidden = [modified_time,is_delete];
+        if (!$type) {
+            array_push($hidden, 'secret');
+        }
         $where['is_delete'] = 0;
-        $publics = $this->where($where)->order('create_time desc')->select();
+        $publics = $this->field($hidden,true)->where($where)->order('create_time desc')->select();
         return $publics;
     }
 }

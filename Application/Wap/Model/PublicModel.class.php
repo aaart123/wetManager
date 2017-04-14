@@ -11,7 +11,7 @@ class PublicModel extends BaseModel
     public function addData($data)
     {
         !$this->create($data) && E($this->getError());
-        return $this->add('', '', true);
+        return $this->add('', array(), true);
     }
 
     public function editData($where, $save)
