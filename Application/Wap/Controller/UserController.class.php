@@ -9,6 +9,7 @@
 namespace Wap\Controller;
 
 use Wap\Controller\BaseController;
+use Wap\Model\PublicSubscribeModel;
 
 
 class UserController extends BaseController
@@ -16,6 +17,11 @@ class UserController extends BaseController
     const APP_ID = 'wxe8b12da30f8ed757';//微信分配的appID
     const APP_SECRET = '4a266d702e91408183772dcd3a774dfc';//微信分配的key
 
+
+    public function usercenter()
+    {
+        $this->display('Index/usercenter');
+    }
 
     /**
      * 授权获取微信用户信息
@@ -59,16 +65,11 @@ class UserController extends BaseController
     }
 
 
-
-
-
-
     public function index()
     {
         print_r($_SESSION);
     }
 
-    
 
     /**
     *主页信息
@@ -85,6 +86,7 @@ class UserController extends BaseController
         $data = D('UserInfo')->getUserInfo($userId);
         $data['self'] = $userId==$_SESSION['plat_user_id'] ? 1 : 0;
         $data['active'] = D('subscribe')->where(array('user_id'=>$userId,'subscribe_state' =>'1'))->count();//关注人数
+        $data['publics'] = D('PublicSubscribe')->where(array('user_id'=>$userId,'state' =>'1'))->count(); // 关注公众号数
         $data['passive'] = D('subscribe')->where(array('subscribe_user'=>$userId,'subscribe_state' =>'1'))->count();//被关注人数
         $data['is_subscribe'] = D('subscribe')->where(
                         array('subscribe_user'=>$userId,'user_id'=>$_SESSION['plat_user_id'])
@@ -104,7 +106,7 @@ class UserController extends BaseController
         // 获取用户所管理的所有公众号
         // http://www.koudaidaxue.com/index.php/Wap/user/getPublic
         $userId = $_SESSION['plat_user_id'];
-        if( $data = D('Base/PublicUser')->getPublicInfo($userId) )
+        if( $data = D('PublicUser')->getPublicInfo($userId) )
         {
             foreach ($data as &$value) {
                 if($value['user_name'] == $_SESSION['plat_public_id'] )
@@ -122,6 +124,13 @@ class UserController extends BaseController
                 'errmsg'=>'数据为空！',
             ));exit;
         }
+    }
+
+    public function recommendPublic()
+    {
+        // 推荐公众号
+            // http://www.koudaidaxue.com/index.php/Wap/user/recommendPublic
+         
     }
 
 
@@ -142,7 +151,7 @@ class UserController extends BaseController
         $data = D('subscribe')->getSubScribeUserInfo($userId);
         foreach ($data['active'] as &$value)
         {
-            $value['subscribe'] = D('subscribe')->where(array('subscribe_user'=>$value['user_id']))->count();//关注人数
+            $value['subscribe'] = D('subscribe')->where(array('subscribe_user'=>$value['user_id'],'subscribe_state'=>'1'))->count();//关注人数
             $value['is_subscribe'] = D('subscribe')->where(
                 array('subscribe_user'=>$value['user_id'],'user_id'=>$_SESSION['plat_user_id'])
             )->getField('subscribe_state')?:0;
@@ -150,7 +159,7 @@ class UserController extends BaseController
         }
         foreach ($data['passive'] as &$value)
         {
-            $value['subscribe'] = D('subscribe')->where(array('subscribe_user'=>$value['user_id']))->count();//被关注人数
+            $value['subscribe'] = D('subscribe')->where(array('subscribe_user'=>$value['user_id'],'subscribe_state'=>'1'))->count();//被关注人数
             $value['is_subscribe'] = D('subscribe')->where(
                 array('subscribe_user'=>$value['user_id'],'user_id'=>$_SESSION['plat_user_id'])
             )->getField('subscribe_state')?:0;
@@ -162,7 +171,34 @@ class UserController extends BaseController
         ));exit;
     }
 
-
+    public function getSubscribePublic()
+    {
+        // 关注公众号信息
+            // http://www.koudaidaxue.com/index.php/Wap/user/getSubscribePublic
+            // $_POST = array(
+            //     'user_id'=>1,
+            // );
+        $userId = $_POST['user_id'] ? $_POST['user_id'] : $_SESSION['plat_user_id'];
+        $where = array('user_id'=>$userId,'state' =>'1');
+        $publics = D('PublicSubscribe')->getAll($where);
+        $publicModel = D('Public');
+        $psModel = D('PublicSubscribe');
+        $response = [];
+        foreach ($publics as $public) {
+            $wh['user_name'] = $public['public_id'];
+            $data = $publicModel->getData($wh);
+            $psWh['public_id'] = $public['public_id'];
+            $psWh['state'] = 1;
+            $data['subscribes'] = $psModel->where($psWh)->count();
+            $psWh['user_id'] = $_SESSION['plat_user_id'];
+            $data['is_subscribe'] = D('PublicSubscribe')->where($psWh)->getField('state')?:0;
+            $response[] = $data;
+        }
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>$response
+        ));exit;
+    }
 
 
 
@@ -182,6 +218,7 @@ class UserController extends BaseController
         $subscribe_user = $_POST['user_id'];
         $subscribe_state = $_POST['state'];
         $userId = $_SESSION['plat_user_id'];
+
         if( D('Subscribe')->field('subscribe_user')->where(array('subscribe_user'=>$subscribe_user,'user_id'=>$userId))->find())
         {
             D('Subscribe')->where(array('subscribe_user'=>$subscribe_user,'user_id'=>$userId))->setfield('subscribe_state',$subscribe_state);
@@ -192,11 +229,12 @@ class UserController extends BaseController
             }
         }else{
             $data = array(
-                'subscribe_user' => (string)$subscribe_user,
+                'subscribe_user' => $subscribe_user,
                 'user_id' => $userId,
-                'subscribe_state' => (string)$subscribe_state
+                'subscribe_state' => $subscribe_state
             );
-            D('Subscribe')->add($data);
+            D('Subscribe')->create($data);
+            D('Subscribe')->add();
         }
         echo json_encode(array(
             'errcode'=>0,
@@ -205,22 +243,42 @@ class UserController extends BaseController
     }
 
 
+    public function subscribePublic()
+    {
+        $post = I('post.');
+        // 取消/关注公众号
+            // http://www.koudaidaxue.com/index.php/Wap/user/subscribePublic
+            // $post = [
+            //     'public_id' => 'gh_1234518'
+            // ];
+        $publicSubscribe = new PublicSubscribeModel();
+        $data = [
+            'user_id' => session('plat_user_id'),
+            'public_id' => $post['public_id']
+        ];
+        if ($states= $publicSubscribe->getData($data)) {
+            $save['state'] = 0;
+            !$states['state'] && $save['state'] = 1;
+            $publicSubscribe->editData($data, $save);
+        } else {
+            $data['state'] = 1;
+            $publicSubscribe->addData($data);
+        }
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>'OK'
+        ));exit;
+    }
+
 
     /**
      * 切换公众号
      */
     public function changePublic()
     {
-
-        // 切换公众号
-        // http://www.koudaidaxue.com/index.php/Wap/user/changePublic
-        // $_POST =array(
-        //     'public_id'=>'gh_6bec9345635d',
-        // );
-        
         $publicId = $_POST['public_id'];
         $userId = $_SESSION['plat_user_id'];
-        D('Base/User')->where(array('user_id'=>$userId))->setfield('login_public',$publicId);
+        D('Conf')->where(array('user_id'=>$userId))->setfield('login_public',$publicId);
         $_SESSION['plat_public_id'] = $publicId;
         echo json_encode(array(
             'errcode'=>0,
@@ -286,22 +344,26 @@ class UserController extends BaseController
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * 获取公众号的信息
+     */
+    public function getPublicInfo()
+    {
+        if($publicId = $_POST['public_id'])
+        {
+            $userId = $_SESSION['plat_user_id'];
+            $data = D('Wap/Public')->field('user_name,alias,nick_name,head_img')->where(array('user_name'=>$publicId))->find();
+            $data['is_sub'] = D('Wap/PublicSubscribe')->where(array('user_id'=>$userId,'public_id'=>$publicId))->getField('state')?:0;
+            echo json_encode(array(
+                'errmsg'=>0,
+                'errmsg'=>$data,
+            ));exit;
+        }else{
+            echo json_encode(array(
+                'errcode'=>10001,
+                'errmsg'=>'参数错误',
+            ));exit;
+        }
+    }
 
 }

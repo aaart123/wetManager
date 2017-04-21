@@ -550,6 +550,47 @@ class WetchatApiController extends BaseController
         echo $QRcode;
     }
 
+    /**
+     * 审核模板
+     * @param $array
+     * @return array|mixed|\stdClass
+     */
+    public function setCheckTemplate($array)
+    {
+        $data =json_encode(array(
+            'touser'=>$array['openid'],
+            'template_id'=>'ownBtXYFhplfZK5raJbZDFd1yck7ZGpuJNONyGC8tm4',
+            'url'=>$array['url'],
+            'data'=>[
+                'first'=>[
+                    'value'=>$array['first'],
+                    'color'=>'#173177',
+                ],
+                'keyword1'=>[
+                    'value'=>$array['keyword1'],
+                    'color'=>'#173177',
+                ],
+                'keyword2'=>[
+                    'value'=>$array['keyword2'],
+                    'color'=>'#173177',
+                ],
+                'remark'=>[
+                    'value'=>$array['remark'],
+                    'color'=>'#11b692',
+                ]
+            ],
+        ));
+        $access_token = $this->getAccessToken();
+        $url = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_token='.$access_token;
+        $response = json_decode(https_request($url,$data),true);
+        return $response;
+    }
+
+    /**
+     * 关注模板
+     * @param $array
+     * @return array|mixed|\stdClass
+     */
     public function setSubscribeTemplate($array)
     {
         $data =json_encode(array(
@@ -566,7 +607,7 @@ class WetchatApiController extends BaseController
                     'color'=>'#173177',
                 ],
                 'keyword2'=>[
-                    'value'=>$array['keyword'],
+                    'value'=>$array['keyword2'],
                     'color'=>'#173177',
                 ],
                 'remark'=>[
@@ -581,6 +622,11 @@ class WetchatApiController extends BaseController
         return $response;
     }
 
+    /**
+     * 授权模板
+     * @param $array
+     * @return array|mixed|\stdClass
+     */
     public function setAuthTemplate($array)
     {
         $data =json_encode(array(

@@ -27,4 +27,10 @@ class PublicModel extends BaseModel
         return $this->parseFieldsMap($data);
     }
 
+    public function editData($where, $data)
+    {
+        !$this->create($data) && E($this->getError());
+        return $this->where($where)->save();
+    }
+
 }

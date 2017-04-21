@@ -16,6 +16,7 @@ class ArticleThumbViewModel extends ViewModel
             '_on' => 't.article_id=a.article_id',
             'article_id',
             'create_time' => 'create_time',
+            'public_time',
             'user_id',
             'content',
             'img',

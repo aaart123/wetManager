@@ -138,7 +138,12 @@ class OauthApiController extends BaseController
                 'open_store' => $response['authorizer_info']['business_info']['open_store'],
                 'func_info' => $func_info
             );
-            $this->publicModel->addData($data);
+            $where['user_name'] = $response['authorizer_info']['user_name'];
+            if ($this->publicModel->getData($where)) {
+                $this->publicModel->editData($where, $data);
+            } else {
+                $this->publicModel->addData($data);
+            }
         }
         $wapData = [
             'nick_name' => $data['nick_name'],
@@ -148,7 +153,12 @@ class OauthApiController extends BaseController
             'qrcode_url' => $data['qrcode_url']
         ];
         $publicModel = new \Wap\Model\PublicModel();
-        $publicModel->addData($wapData);
+        $wh['user_name'] = $data['user_name'];
+        if ($publicModel->getData($wh)) {
+            $publicModel->editData($wh, $wapData);
+        } else {
+            $publicModel->addData($wapData);
+        }
         return $data;
     }
 

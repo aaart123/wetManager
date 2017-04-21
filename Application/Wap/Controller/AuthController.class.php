@@ -3,10 +3,10 @@
 namespace Wap\Controller;
 
 use Think\Controller;
-use Wap\Controller\BaseController;
+use Wap\Controller\LoginController;
 use Wap\Controller\ArtificialController;
 
-class AuthController extends BaseController
+class AuthController extends LoginController
 {
 
     private $user_id;
@@ -70,7 +70,19 @@ class AuthController extends BaseController
         echo json_encode([
         'errcode' => 0,
         'errmsg' => $list
-        ]);
+        ]); 
+        exit;
+    }
+
+    public function getData($id)
+    {
+        // 获取人工审核信息
+            // http://www.koudaidaxue.com/index.php/wap/auth/getData?id=1
+        $data = $this->ArtificialActivity->getData($id);
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $data
+            ]);
         exit;
     }
 
@@ -164,5 +176,4 @@ class AuthController extends BaseController
             exit;
         } 
     }
-
 }

@@ -68,6 +68,6 @@ class CommonController extends Controller
             return false; 
         }
         $datas = serialize($datas);
-        return $this->redis->setex($key, 592, $datas);
+        return $this->redis->setex($key, 300, $datas);
     }
 }

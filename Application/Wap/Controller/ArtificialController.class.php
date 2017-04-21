@@ -14,7 +14,7 @@ class ArtificialController extends CommonController
 {
     private $publicTempModel;
     private $publicModel;
-    private $admins = ['10007','10002', '10001'];
+    private $admins = ['10007', '10002', '10001'];
     public function __construct()
     {
         parent::__construct();
@@ -25,6 +25,7 @@ class ArtificialController extends CommonController
     private function templateNotive($openid, $secret, $nick_name, $type)
     {
         $array=[
+            'state' => 1,
             'openid'=> $openid,
             'url'=>'http://www.koudaidaxue.com/index.php/Wap/Index/binding',
             'first'=>"认证验证码已发至{$nick_name}后台,请查收后'复制',继续进行认证
@@ -35,6 +36,7 @@ class ArtificialController extends CommonController
             'remark'=>'点此继续认证'
                 ];
         if (!$type) {
+            $array['state'] = 0;
             $array['first'] = "{$nick_name} 人工认证失败
             ";
             $array['keyword1'] = "原因:{$_POST['reason']}";
@@ -83,6 +85,19 @@ class ArtificialController extends CommonController
         }
     }
 
+    public function getData($id)
+    {
+        $where['id'] = $id;
+        $data = $this->publicTempModel->getData($where);
+        $temp = get_newrank_media_info($data['alias']);
+        $data['qrcode_url'] = "http://open.weixin.qq.com/qr/code/?username={$data['alias']}";
+        $data['head_img'] = "";
+        $data['user_name'] = empty($temp['user_name']) ? $data['user_name'] : $temp['user_name'];
+        $data['nick_name'] = empty($temp['nick_name']) ? $data['nick_name'] : $temp['nick_name'];
+        $this->publicTempModel->editData($where, $data);
+        return $data;
+    }
+
     public function edit($where, $data)
     {
         if ($this->publicTempModel->editData($where, $data)) {
@@ -110,12 +125,14 @@ class ArtificialController extends CommonController
             $data['user_name'] = $auth['user_name'];
             $data['qrcode_url'] = $auth['qrcode_url'];
         }
-        if ($this->publicModel->addData($data)) {
-            A('User/PublicUser')->addPublicList($data['user_name'], $data['user_id']);
-            return true;
+        if ($id = $this->publicModel->getData($where)) {
+            $data['id'] = $id['id'];
+            $this->publicModel->editData($where, $data);
         } else {
-            return false;
+            $this->publicModel->addData($data);
         }
+        A('User/PublicUser')->addPublicList($data['user_name'], $data['user_id']);
+        return true;
     }
 
     /**

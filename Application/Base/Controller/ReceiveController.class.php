@@ -200,6 +200,7 @@ class ReceiveController extends OauthApiController
             D('User')->where(array('user_id'=>$plat_user_id))->save(array('login_public'=>$publicInfo['user_name']));
             $this->sendNotive($publicInfo, $plat_user_id);
         }
+        session('plat_public_id', $publicInfo['user_name']);
         if(ismobile()) {
             D('Wap/Conf')->where(array('user_id'=>$plat_user_id))->save(array('login_public'=>$publicInfo['user_name']));
             $url = 'http://'.$_SERVER['HTTP_HOST'].'/Wap/Index';

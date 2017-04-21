@@ -28,7 +28,7 @@ class MediaCircleController extends Controller
         // 获取最热动态
             // http://www.koudaidaxue.com/index.php/wap/MediaCircle/getHotList
         $articleActivity = new ArticleController();
-        $list = $articleActivity->getHotList();
+        $list = $articleActivity->getWeightList();
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list

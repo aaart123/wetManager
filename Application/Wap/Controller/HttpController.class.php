@@ -121,12 +121,18 @@ class HttpController extends BaseController
         // 获取加权列表
             // http://www.koudaidaxue.com/index.php/wap/http/getWeightList?page=1
         $page = I('get.page', 1);
-        $list = $this->articleActivity->getWeightList($this->user_id, $page);
-        usort($list, descSort('weight'));
-        echo json_encode([
-            'errcode' => 0,
-            'errmsg' => $list
-        ]);
+        $list = $this->articleActivity->getWeightList($page);
+        if ($list) {
+            echo json_encode([
+                'errcode' => 0,
+                'errmsg' => $list
+            ]);
+        } else {
+            echo json_encode([
+                'errcode' => 0,
+                'errmsg' => []
+            ]); 
+        }
         exit;
     }
 
@@ -169,7 +175,7 @@ class HttpController extends BaseController
         } else {
             echo json_encode([
                 'errcode' => 1001,
-                'errmsg' => '失败'
+                'errmsg' => '你已经点过赞了'
             ]);
             exit;
         }
@@ -254,7 +260,7 @@ class HttpController extends BaseController
 	}
     public function thumbComment($comment_id)
     {
-        // 取消/点赞圈子文章
+        // 取消/点赞评论
             // http://www.koudaidaxue.com/index.php/wap/http/thumbComment?comment_id=18
         if ($this->commentActivity->thumbComment($this->user_id, $comment_id)) {
             echo json_encode([
@@ -265,7 +271,7 @@ class HttpController extends BaseController
         } else {
             echo json_encode([
                 'errcode' => 1001,
-                'errmsg' => '失败'
+                'errmsg' => '你已经点过赞了'
             ]);
             exit;
         }
@@ -280,7 +286,11 @@ class HttpController extends BaseController
         $articleList = $this->articleActivity->getSelfList($user_id);
         $commentList = $this->commentActivity->getSelfList($user_id);
         $list = array_merge($articleList, $commentList);
-        usort($list, descSort('create_time'));
+        if (substr($user_id, 0, 3) == 'gh_') {
+            usort($list, descSort('public_time'));
+        } else {
+            usort($list, descSort('create_time'));
+        }
         echo json_encode([
             'errcode' => 0,
             'errmsg' => $list

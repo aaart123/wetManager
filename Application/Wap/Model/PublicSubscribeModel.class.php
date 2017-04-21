@@ -1,23 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: 李欣
- * Date: 2017/3/28
- * Time: 12:01
- */
 
 namespace Wap\Model;
 
 use Wap\Model\BaseModel;
 
-class CommentThumbModel extends BaseModel
+class PublicSubscribeModel extends BaseModel
 {
-    protected $tableName = 'kdgx_social_comment_thumb';
+    protected $tableName = 'kdgx_public_subscribe';
 
     public function addData($data)
     {
         !$this->create($data) && E($this->getError());
-        return $this->add();
+        return $this->add('', array(), true);
     }
 
     public function editData($where, $save)
@@ -28,13 +22,14 @@ class CommentThumbModel extends BaseModel
 
     public function getData($where)
     {
-        $comment = $this->where($where)->find();
-        return $comment;
+        $data = $this->where($where)->find();
+        return $data;
     }
 
-    public function getCount($where)
+    public function getAll($where = array())
     {
-        return $this->where($where)->count();
+        $publics = $this->where($where)->select();
+        return $publics;
     }
 
 

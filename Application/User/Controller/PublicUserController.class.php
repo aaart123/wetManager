@@ -29,7 +29,6 @@ class PublicUserController extends BaseController
      */
     public function addPublicList($publicId, $userId)
     {
-        echo $publicId.$userId;
         if( $this->isPublicAdmin($publicId, $userId) )
         {
             return false;

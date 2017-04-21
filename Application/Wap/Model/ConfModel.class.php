@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: 李欣
- * Date: 2017/4/1
- * Time: 11:28
- */
+
 
 namespace Wap\Model;
 

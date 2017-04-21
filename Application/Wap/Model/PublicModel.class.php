@@ -28,7 +28,6 @@ class PublicModel extends BaseModel
 
     public function getAll($where = array())
     {
-        !isset($where['state']) && $where['state'] = ['neq',2];
         $publics = $this->where($where)->order('create_time desc')->select();
         return $publics;
     }

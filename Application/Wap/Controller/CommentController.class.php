@@ -4,11 +4,15 @@ namespace Wap\Controller;
 
 use Wap\Controller\CommonController;
 
+use Wap\Model\PublicModel;
 use Wap\Model\ArticleModel;
 use Wap\Model\CommentModel;
 use Wap\Model\CommentThumbModel;
 use Wap\Model\CommentViewModel;
 use Wap\Model\CommentReadModel;
+use Wap\Model\PublicUserModel;
+use Wap\Model\PublicSubscribeModel;
+
 
 /**
  * 评论管理
@@ -30,6 +34,39 @@ class CommentController extends CommonController
         $this->commentView = new CommentViewModel();
     }
 
+    private function sendNotive($openid, $article_id, $nickname)
+    {
+        $array=[
+            'openid'=> $openid,
+            'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index#/detail?id='.$article_id.'&from=share',
+            'first'=>'您的动态有精彩评论,快去看看吧!
+                    ',
+            'keyword1'=>"{$nickname} 的评论",
+            'keyword2'=>date('m-d H:i'),
+            'remark'=>'
+点此查看详情'
+        ];
+        $obj = new \Base\Controller\WetchatApiController();
+        $obj->publicId = 'gh_243fe4c4141f';
+        $obj->setSubscribeTemplate($array);
+    }
+
+    private function sendReply($openid, $article_id, $nickname, $first)
+    {
+        $array=[
+            'openid'=> $openid,
+            'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index#/detail?id='.$article_id.'&from=share',
+            'first'=>$first,
+            'keyword1'=>"{$nickname} 的回复",
+            'keyword2'=>date('m-d H:i'),
+            'remark'=>'
+点此查看详情'
+        ];
+        $obj = new \Base\Controller\WetchatApiController();
+        $obj->publicId = 'gh_243fe4c4141f';
+        $obj->setSubscribeTemplate($array);
+    }
+
     /**
      * 创建评论
      * @param array
@@ -38,10 +75,56 @@ class CommentController extends CommonController
     {
        if ($comment_id = $this->commentModel->addData($data)) {
            $this->articleModel->Insec($data['article_id'], 'comment');
+           $this->replyNotive($comment_id);
            return $comment_id;
        } else {
            return false;
        }
+    }
+
+    /**
+     * 回复通知
+     */
+    private function replyNotive($comment_id)
+    {
+        $comment = $this->commentModel->relation('article')->getData($comment_id);
+        if (!$comment['pid']) {
+            $this->thumbNotive($comment, true);
+        } else {
+            $pcomment = $this->commentModel->getData($comment['pid']);
+            $openid = D('User')->where(['user_id'=>$pcomment['user_id']])->getField('openid');
+            $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
+            $first = '您有新的回复,快去看看吧!
+                    ';
+            $this->sendReply($openid, $comment['article_id'], $nickname, $first);
+        }
+    }
+
+    /**
+     * 评论/点赞 通知
+     */
+    private function thumbNotive($comment, $flag = false)
+    {
+        if (substr($comment['article']['user_id'], 0, 3)=='gh_') {
+            $publicUser = new PublicUserModel();
+            $puWh['public_id'] = $comment['article']['user_id'];
+            $users = $publicUser->where($puWh)->getField('user_list');
+            $users = explode(',', $users);
+            foreach ($users as $user) {
+                $openid = D('User')->where(['user_id'=>$user])->getField('openid');
+                $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
+                $first = '您被精选的文章，有新的评论
+                        ';
+                !$flag ? $this->sendNotive($openid, $comment['article_id'], $nickname) : $this->sendReply($openid, $comment['article_id'], $nickname, $first);
+                
+            }
+        } else {
+            $openid = D('User')->where(['user_id'=>$comment['article']['user_id']])->getField('openid');
+            $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
+            $first = '您有新的回复,快去看看吧!
+                    ';
+            !$flag ? $this->sendNotive($openid, $comment['article_id'], $nickname) : $this->sendReply($openid, $comment['article_id'], $nickname, $first);
+        }
     }
 
     /**
@@ -57,14 +140,15 @@ class CommentController extends CommonController
             'comment_id' => $comment_id
         ];
         if ($thumb = $this->commentThumbModel->getData($data)) {
-            $save['state'] = 1;
-            $thumb['state'] && $save['state'] = 0;
-            if ($this->commentThumbModel->editData($data, $save)) {
-                return true;
-            } else {
-                return false;
-            }
+            return false;
         } elseif ($this->commentThumbModel->addData($data)) {
+            $where['comment_id'] = $comment_id;
+            $count = $this->commentThumbModel->getCount($where);
+            if (0 && $count == 1) {
+                // 发送模板消息
+                $comment = $this->commentModel->relation('article')->getData($comment_id);
+                $this->thumbNotive($comment);
+            }
             return true;
         } else {
             return false;
@@ -78,10 +162,10 @@ class CommentController extends CommonController
     public function deleteComment($comment_id)
     {
         $where['comment_id'] = $comment_id;
-        $comment = $this->commentModel->getData($where);
+        $comment = $this->commentModel->getData($comment_id);
         $save['is_delete'] = '1';
         if ($this->commentModel->editData($where, $save)) {
-            $this->articleModel->Desec($data['article_id'], 'comment');
+            $this->articleModel->Desec($comment['article_id'], 'comment');
             return true;
         } else {
             return false;
@@ -215,9 +299,15 @@ class CommentController extends CommonController
         if (isset($data['article'])) {
             if($data['article']['is_delete']==1) {
                 $data['article'] = -1;
+            } else if(substr($data['article']['user_id'], 0, 3)=='gh_'){
+                $data['article']['type'] = 1;
+                $publicModel = new PublicModel();
+                $pubWh['user_name'] = $data['article']['user_id'];
+                $data['article']['user'] = $publicModel->getData($pubWh);
             } else {
                 $user = D('UserInfo')->getUserInfo($data['article']['user_id']);
                 $data['article']['user'] = $user;
+                $data['article']['type'] = 0;
             }
         }
         /* --------------- 关注状态处理 -------------------*/
