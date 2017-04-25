@@ -15,6 +15,18 @@ class IndexController extends BaseController
 
     public function index()
     {
-        $this->display('Index/index');
+        $userId = $_SESSION['plat_user_id'];
+        if(!D('Wap/Article')->where(array('user_id'=>$userId))->count())
+        {
+            $this->display('Index/newcomer');
+        }else{
+            $this->display('Index/index');
+        }
     }
+
+    public function admin()
+    {
+        $this->display('Index/manage');
+    }
+
 }

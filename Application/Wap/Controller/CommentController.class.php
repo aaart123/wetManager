@@ -92,11 +92,13 @@ class CommentController extends CommonController
             $this->thumbNotive($comment, true);
         } else {
             $pcomment = $this->commentModel->getData($comment['pid']);
-            $openid = D('User')->where(['user_id'=>$pcomment['user_id']])->getField('openid');
-            $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
-            $first = '您有新的回复,快去看看吧!
-                    ';
-            $this->sendReply($openid, $comment['article_id'], $nickname, $first);
+            if (session('plat_user_id') != $pcomment['user_id']) {
+                $openid = D('User')->where(['user_id'=>$pcomment['user_id']])->getField('openid');
+                $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
+                $first = '您有新的回复,快去看看吧!
+                        ';
+                $this->sendReply($openid, $comment['article_id'], $nickname, $first);
+            }
         }
     }
 
@@ -105,12 +107,15 @@ class CommentController extends CommonController
      */
     private function thumbNotive($comment, $flag = false)
     {
-        if (substr($comment['article']['user_id'], 0, 3)=='gh_') {
+        if (!is_numeric($article['user_id'])) {
             $publicUser = new PublicUserModel();
             $puWh['public_id'] = $comment['article']['user_id'];
             $users = $publicUser->where($puWh)->getField('user_list');
             $users = explode(',', $users);
             foreach ($users as $user) {
+                if (session('plat_user_id') == $user) {
+                    continue;
+                }
                 $openid = D('User')->where(['user_id'=>$user])->getField('openid');
                 $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
                 $first = '您被精选的文章，有新的评论
@@ -118,10 +123,10 @@ class CommentController extends CommonController
                 !$flag ? $this->sendNotive($openid, $comment['article_id'], $nickname) : $this->sendReply($openid, $comment['article_id'], $nickname, $first);
                 
             }
-        } else {
+        } elseif (session('plat_user_id') != $comment['article']['user_id']) {
             $openid = D('User')->where(['user_id'=>$comment['article']['user_id']])->getField('openid');
             $nickname = D('UserInfo')->where(['user_id'=>$comment['user_id']])->getField('nickname');
-            $first = '您有新的回复,快去看看吧!
+            $first = '您有新的回复,快去看看吧!+
                     ';
             !$flag ? $this->sendNotive($openid, $comment['article_id'], $nickname) : $this->sendReply($openid, $comment['article_id'], $nickname, $first);
         }

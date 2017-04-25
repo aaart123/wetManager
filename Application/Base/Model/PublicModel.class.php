@@ -17,14 +17,14 @@ class PublicModel extends BaseModel
      */
     public function addData($data)
     {
-        !$this->create($data) && E($this->getError());
-        return $this->add(array(), array(), true);
+        $da = $this->create($data);
+        return $this->add();
     }
 
     public function getData($where)
     {
         $data = $this->where($where)->find();
-        return $this->parseFieldsMap($data);
+        return $data;
     }
 
     public function editData($where, $data)

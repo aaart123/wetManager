@@ -33,14 +33,15 @@ class UserInfoModel extends BaseModel
     
     public function getUserInfo($userId)
     {
-        $sql = 'SELECT  i.`user_id`,
-                        i.`nickname`,
-                        i.`headimgurl`,
-                        p.`nick_name`as publicname
+        $sql = "SELECT i.`user_id`,
+                       p.`user_name`,
+                       i.`nickname`,
+                       i.`headimgurl`,
+                       p.`nick_name`as publicname
                 FROM `pocket`.`kdgx_user_info` AS i
-                INNER JOIN `kdgx_plat_user` AS u ON u.`user_id`= i.`user_id`
-                LEFT JOIN `kdgx_plat_public` AS p ON u.`login_public`= p.`user_name`
-                WHERE i.`user_id`= '.$userId;
+                INNER JOIN `kdgx_wap_conf` AS c ON c.`user_id`= i.`user_id`
+                LEFT JOIN `kdgx_wap_public` AS p ON c.`login_public`= p.`user_name`
+                WHERE i.`user_id`= '$userId'";
         $data = $this->query($sql);
         return $data[0];
     }

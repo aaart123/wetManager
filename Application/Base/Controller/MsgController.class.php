@@ -65,6 +65,7 @@ class MsgController extends CommonController
                     case 'unsubscribe': # 取消订阅事件
                         if (isset($param['EventKey'])) {  # 参数二维码取消订阅事件
                         }
+                        return $this->subscribeEvent($param);
                     case 'LOCATION':    # 上报地理位置事件
                         $this->distributeEvent($param);
                         return;
@@ -154,6 +155,7 @@ class MsgController extends CommonController
         //     'EventKey' => 'newMediaWap'
         // ];
         $subscribute = new SubscribeController();
+        $subscribute->subscribeLog($param);
         $replayMsg = $subscribute->parseQRcode($param);
         // echo $replayMsg;exit;
         $this->sendMsg($replayMsg);

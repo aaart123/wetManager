@@ -126,13 +126,6 @@ class UserController extends BaseController
         }
     }
 
-    public function recommendPublic()
-    {
-        // 推荐公众号
-            // http://www.koudaidaxue.com/index.php/Wap/user/recommendPublic
-         
-    }
-
 
 
 
@@ -200,8 +193,45 @@ class UserController extends BaseController
         ));exit;
     }
 
+    /**
+     * 推荐关注人信息
+     */
+    public function getRecommendUser()
+    {
+        $page = $_GET['p']?:1;
+        $userId = $_SESSION['plat_user_id'];
+        $arr = D('Wap/Subscribe')->getRecommendUser($userId,$page);
+        foreach ($arr as $v)
+        {
+            if($v['user_id'] != $userId)
+            {
+                $info = D('Wap/UserInfo')->getUserInfo($v['user_id']);
+                $v['is_subscribe'] = 0;
+                $data[] = array_merge($v,$info);
+            }
+        }
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>$data,
+        ));
+    }
 
-
+    /**
+     * 推荐关注公众号信息
+     */
+    public function getRecommendPublic()
+    {
+        $page = $_GET['p']?:1;
+        $userId = $_SESSION['plat_user_id'];
+        $data = D('Wap/PublicSubscribe')->getRecommendPublic($userId,$page);
+        foreach ($data as &$v){
+            $v = array_merge($v,array('is_subscribe'=>0));
+        }
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>$data
+        ));
+    }
 
 
     /**
@@ -221,20 +251,18 @@ class UserController extends BaseController
 
         if( D('Subscribe')->field('subscribe_user')->where(array('subscribe_user'=>$subscribe_user,'user_id'=>$userId))->find())
         {
-            D('Subscribe')->where(array('subscribe_user'=>$subscribe_user,'user_id'=>$userId))->setfield('subscribe_state',$subscribe_state);
-            $is_subscribe = D('Conf')->where(array('user_id'=>$subscribe_user))->getfield('is_subscribe');
-            if($subscribe_state == '1' && $is_subscribe == '1')
-            {
-                ##关注模板消息推送
-            }
+            D('Subscribe')
+                ->where(array('subscribe_user'=>$subscribe_user,'user_id'=>$userId))
+                ->save(array('subscribe_state'=>$subscribe_state,'modified_time'=>time()));
         }else{
             $data = array(
                 'subscribe_user' => $subscribe_user,
                 'user_id' => $userId,
-                'subscribe_state' => $subscribe_state
+                'subscribe_state' => $subscribe_state,
+                'create_time' => time(),
+                'modified_time' => time(),
             );
-            D('Subscribe')->create($data);
-            D('Subscribe')->add();
+            D('Subscribe')->add($data);
         }
         echo json_encode(array(
             'errcode'=>0,
@@ -364,6 +392,38 @@ class UserController extends BaseController
                 'errmsg'=>'参数错误',
             ));exit;
         }
+    }
+
+    /**
+     * 获取公众号指数榜单
+     */
+    public function publicRank()
+    {
+        $data = D('Wap/Data')->getRankData();
+        foreach ($data as &$v) {
+            $v['rank'] = D('Wap/Data')->getRank($v['user_name']);
+        }
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>$data
+        ));
+    }
+
+    /**
+     * 获取公众号七天的数据
+     */
+    public function getMediaData()
+    {
+        $publicId = $_POST['public_id'];
+        $data  = D('Wap/Data')->getMediaData($publicId);
+        foreach ($data as &$v)
+        {
+            $v['rank'] = D('Wap/Data')->getRank($v['user_name'],$v['timestamp']);
+        }
+        echo json_encode(array(
+            'errcode'=>0,
+            'errmsg'=>$data
+        ));
     }
 
 }

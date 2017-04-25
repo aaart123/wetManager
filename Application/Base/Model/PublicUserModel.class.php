@@ -94,7 +94,17 @@ class PublicUserModel extends AppModel
     }
 
 
+    public function isAuthPublic($publicId)
+    {
+        $sql = "SELECT au.`id` 
+                FROM `pocket`.`kdgx_plat_authorizer` AS au
+                INNER JOIN `kdgx_plat_public` AS p ON p.`authorizer_appid`= au.`authorizer_appid`
+                WHERE p.`user_name`= '$publicId' && au.`authorization_state` = '1' ";
+        return $this->query($sql);
+    }
 
+    
+    
     /***
      * 获取公众号的所有管理员
      * @param $publicId

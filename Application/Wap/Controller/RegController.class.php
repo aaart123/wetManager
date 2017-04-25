@@ -44,7 +44,13 @@ class RegController extends Controller
      */
     public function index()
     {
-        $this->display('Index/login');
+        if($user_id = D('Wap/User')->where(array('openid'=>$_SESSION['wechat_info']['openid']))->getField('user_id'))
+        {
+            header('Location:http://www.koudaidaxue.com/index.php/Wap/Index/index');
+        }else{
+            $this->display('Index/login');
+        }
+
     }
 
     /**
@@ -124,19 +130,8 @@ class RegController extends Controller
             //新媒圈配置表
             D('Wap/Conf')->add(array('user_id'=>$userId,'create_time'=>time()));
             //默认关注小口袋
-            //$content = D('Article')->where(array('id'=>3))->find();
-            $array = array(
-                'openid'=>$_SESSION['wechat_info']['openid'],
-                'url'=>'http://www.koudaidaxue.com/index.php/Wap/Index#/detail?id=3&comment=false&index=11',
-                'first'=>'你关注的媒体人有新动态',
-                'keyword1'=>'小口袋的动态',
-                'keyword2'=>date('m-d H:i',1491564647).'更新',
-                '点击查看详情',
-            );
             D('Wap/Subscribe')->add(array('user_id'=>$userId,'subscribe_user'=>'10007','subscribe_state'=>'1','create_time'=>time()));
-            $wechat = new \Base\Controller\WetchatApiController();
-            $wechat->publicId = 'gh_243fe4c4141f';
-            $wechat->setSubscribeTemplate($array);
+            D('Wap/Subscribe')->add(array('user_id'=>'10007','subscribe_user'=>$userId,'subscribe_state'=>'1','create_time'=>time()));
             echo json_encode(array(
                 'errcode'=>0,
                 'errmsg'=>'注册成功！'

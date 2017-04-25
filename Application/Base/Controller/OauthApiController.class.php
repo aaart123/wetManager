@@ -109,7 +109,7 @@ class OauthApiController extends BaseController
     // 获取授权方的公众号帐号基本信息
     public function getPublicInfo($authorizer_appid)
     {
-        if (!$data = M('kdgx_plat_public')->where(array('authorizer_appid'=>$authorizer_appid))->find()) {
+        if (!($data = M('kdgx_plat_public')->where(array('authorizer_appid'=>$authorizer_appid))->find()) || $data['create_time'] < strtotime('-1 day')) {
             $component_access_token = $this->getComponent_access_aoken();
             $url = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token={$component_access_token}";
             $data = '{"component_appid":"'.C('COMPONENT_APPID').'","authorizer_appid":"'.$authorizer_appid.'"}';
@@ -130,17 +130,19 @@ class OauthApiController extends BaseController
                 'alias' =>  $response['authorizer_info']['alias'],
                 'qrcode_url'  =>  $response['authorizer_info']['qrcode_url'],
                 'principal_name'  => $response['authorizer_info']['principal_name'],
-                'authorizer_appid'  => $response['authorization_info']['authorizer_appid'],
                 'open_pay' => $response['authorizer_info']['business_info']['open_pay'],
                 'open_shake' => $response['authorizer_info']['business_info']['open_shake'],
                 'open_scan' => $response['authorizer_info']['business_info']['open_scan'],
                 'open_card' => $response['authorizer_info']['business_info']['open_card'],
                 'open_store' => $response['authorizer_info']['business_info']['open_store'],
+
+                'authorizer_appid'  => $response['authorization_info']['authorizer_appid'],
                 'func_info' => $func_info
             );
-            $where['user_name'] = $response['authorizer_info']['user_name'];
-            if ($this->publicModel->getData($where)) {
-                $this->publicModel->editData($where, $data);
+            $pwh['user_name'] = $data['user_name'];
+            if ($pData = $this->publicModel->getData($pwh)) {
+                $data['id'] = $pData['id'];
+                $this->publicModel->editData($pwh, $data);
             } else {
                 $this->publicModel->addData($data);
             }

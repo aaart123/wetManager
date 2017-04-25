@@ -7,17 +7,20 @@ use Console\Model\WenzhangModel;
 use Wap\Model\UserModel;
 use Wap\Model\ArticleModel;
 use Wap\Model\PublicSubscribeModel;
+use Wap\Controller\BlackController;
 
 class NewrankController extends Controller
 {
     private $WenzhangModel;
     private $articleModel;
+    private $blackActivity;
 
     public function __construct()
     {
         parent::__construct();
         $this->WenzhangModel = new WenzhangModel();
         $this->articleModel = new ArticleModel();
+        $this->blackActivity = new BlackController();
     }
 
     /**
@@ -141,8 +144,11 @@ class NewrankController extends Controller
         $data['publicname'] = $article['user_id'];
         $data['url'] = $article['url'];
         $data['public_time'] = $article['public_time'];
-        if ($article['public_time'] > strtotime('-3 day') 
-            && ($data['clicks_count'] > 1200 || $data['like_count'] > 20)) {
+        $black = ['gh_db45517db611','wxid_16492264917'];
+        if (!in_array($article['user_id'], $black) 
+            && !$this->blackActivity->isBlack($article['user_id']) 
+            && $article['public_time'] > strtotime('-3 day') 
+            && ($data['clicks_count'] > 1200 && $data['like_count'] > 20)) {
             $data['is_delete'] = 0;
             if ($result = $this->articleModel->getAll($where)) {
                 $data['article_id'] = $result[0]['article_id'];
@@ -158,7 +164,6 @@ class NewrankController extends Controller
         } else {
             $data['is_delete'] = 2;
             if ($result = $this->articleModel->getAll($where)) {
-                // !($data['clicks_count'] > 1200 || $data['like_count'] > 20) && $data['is_delete'] = 0;
                 $data['article_id'] = $result[0]['article_id'];
                 $this->articleModel->editData($where, $data);
                 return false;
@@ -178,7 +183,6 @@ class NewrankController extends Controller
     {
         $publicSubscribe = new PublicSubscribeModel();
         $psWh['public_id'] = $public_id;
-        // $psWh['send_time'] = ['lt', time()-86000];
         $psWh['state'] = 1;
         $users = $publicSubscribe->getAll($psWh);
         $userModel = new UserModel();
@@ -201,7 +205,7 @@ class NewrankController extends Controller
             }
             $array=[
                 'openid'=> $openid['openid'],
-                'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index#/detail?id='.$article_id.'&from=share',
+                'url'=>"http://www.koudaidaxue.com/index.php/wap/index/index?page=detail?id={$article_id}",
                 'first'=>$article['author'].'有更新
                          ',
                 'keyword1'=> mb_substr($article['title'], 0, 10).'...',
@@ -232,7 +236,7 @@ class NewrankController extends Controller
             $articles = $info['value']['lastestArticle'];
             foreach ($articles as &$article) {
                 $data = $this->insertWenzhang($article);
-                if (!($data['clicks_count'] > 1200 || $data['like_count'] > 20)) {
+                if (!($data['clicks_count'] > 1200 && $data['like_count'] > 20)) {
                     $data['user_id'] = D('Wap/Public')->where(['nick_name'=> $data['author']])->getField('user_name');
                     if (empty($data['user_id'])) {
                         continue ;
@@ -250,20 +254,14 @@ class NewrankController extends Controller
     {   
         $map['clicks_count'] = ['gt', 1200];
         $map['like_count'] = ['gt', 20];
-        $map['_logic'] = 'or';
+        $map['_logic'] = 'and';
         $where['_complex'] = $map;
         $where['create_time'] = ['between', [strtotime('-1 day'), time()]];
         $articles = $this->WenzhangModel->getAll($where);
-        $count = floor(count($articles) / 144 + 1);
-        $flog = 0;
-        echo $count;
         foreach ($articles as $article) {
             $article['user_id'] = D('Wap/Public')->where(['nick_name'=> $article['author']])->getField('user_name');
             if ($this->insertArticle($article)) {
-                if (++$flog == $count) {
-                    echo $flog.'=>'.$count;
-                    exit;
-                }
+                return; 
             } else {
                 echo 'false';
             }

@@ -25,7 +25,7 @@ class LoginController extends Controller
                     $_SESSION['plat_user_id'] = $userId;
                     header('Location:'.$url);exit;
                 }else{
-                    $url = 'http://www.koudaidaxue.com/index.php/Wap/Outside/invite?aid='.$_GET['aid'];
+                    $url = 'http://www.koudaidaxue.com/index.php/Wap/Share/preview?aid='.$_GET['aid'];
                     header('Location:'.$url);exit;
                 }
             }else{
@@ -54,13 +54,22 @@ class LoginController extends Controller
 
     public function getPublic()
     {
+        // 获取用户所管理的所有公众号
+        // http://www.koudaidaxue.com/index.php/Wap/user/getPublic
         $userId = $_SESSION['plat_user_id'];
-        $data = D('Wap/PublicUser')->getPublicInfo($userId);
+        $data = D('PublicUser')->getPublicInfo($userId);
+        foreach ($data as &$value) {
+            if($value['user_name'] == $_SESSION['plat_public_id'] )
+            {
+                $value['now'] = 1;
+            }
+        }
         echo json_encode(array(
             'errcode'=>0,
-            'errmsg'=>$data
-        ));
+            'errmsg'=>$data,
+        ));exit;
     }
+
 
 
 }

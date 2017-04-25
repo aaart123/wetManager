@@ -6,6 +6,7 @@ use Think\Controller;
 use Wap\Controller\BaseController;
 use Wap\Controller\ArticleController;
 use Wap\Controller\CommentController;
+use Wap\Controller\BlackController;
 
 /**
  * 路由管理
@@ -14,6 +15,7 @@ class HttpController extends BaseController
 {
     private $articleActivity;
     private $commentActivity;
+    private $blackActivity;
     private $user_id;
     private $public_id;
 
@@ -26,6 +28,7 @@ class HttpController extends BaseController
         $this->public_id = session('plat_public_id');
         $this->articleActivity = new ArticleController();
         $this->commentActivity = new CommentController();
+        $this->blackActivity = new BlackController();
     }
 
 /* ---------------------------------------- 圈子文章 ------------------------------------------------- */
@@ -43,6 +46,13 @@ class HttpController extends BaseController
             //     ],
             //     'url' => 'http://www.外链.com'
             // ];
+        if ($this->blackActivity->isBlack($this->user_id)) {
+            echo json_encode([
+            'errcode' => 1001,
+            'errmsg' => '黑名单用户'
+            ]);
+            exit;
+        }
         $post['user_id'] = $this->user_id;
         $post['publicname'] = $this->public_id;
         if ($article_id = $this->articleActivity->createArticle($post)) {
@@ -192,6 +202,13 @@ class HttpController extends BaseController
             //     'content' => '这里是'.$this->user_id.'评论'.$article_id.'的内容',
             //     'pid' => 0 #评论的评论comment_id;评论文章则为0
             // ];
+        if ($this->blackActivity->isBlack($this->user_id)) {
+            echo json_encode([
+            'errcode' => 1001,
+            'errmsg' => '黑名单用户'
+            ]);
+            exit;
+        }
         $post['user_id'] = session('plat_user_id');
         $post['article_id'] = $article_id;
         if ($article_id = $this->commentActivity->createComment($post)) {
@@ -350,5 +367,26 @@ class HttpController extends BaseController
             'errmsg' => $list
         ]);
         exit;
+    }
+
+    public function blackUser($black)
+    {
+        // 拉黑/取消拉黑某个用户或公众号
+            // http://www.koudaidaxue.com/index.php/wap/http/blackUser?black=gh_281e1b2b8f4d
+        $black_id = I('get.black');
+        $blackActivity = new BlackController();
+        if ($blackActivity->changeBlack($black_id, $this->user_id)) {
+            echo json_encode([
+                'errcode' => 0,
+                'errmsg' => 'OK'
+            ]);
+            exit;
+        } else {
+            echo json_encode([
+                'errcode' => 1001,
+                'errmsg' => '你已经点过赞了'
+            ]);
+            exit;
+        }
     }
 }

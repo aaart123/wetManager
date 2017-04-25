@@ -63,13 +63,15 @@ class WetchatApiController extends BaseController
 /* ------------------------------------------  用户管理API   ---------------------------------------------------------- */
     /**
      * 获取用户基本信息
-     * @param string appid
+     * @param string public_id
      * @param string openid
      * @return array 用户信息
      */
-    protected function getOpenidInfo($authorizer_appid, $openid)
+    public function getOpenidInfo($public_id, $openid)
     {
-        $authorizer_access_token = $this->getAuths($authorizer_appid);
+        $oauthApi = new OauthApiController();
+        $authorizer_appid = $oauthApi->getAuthorizerAppid($public_id);
+        $authorizer_access_token = $oauthApi->getAuths($authorizer_appid);
         $url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token={$authorizer_access_token}&openid={$openid}&lang=zh_CN";
         $response = httpRequest($url);
         return $response;

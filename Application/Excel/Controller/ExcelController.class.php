@@ -27,20 +27,61 @@ class ExcelController extends Controller
         $this->display();
     }
 
-    public function a()
+    public function docmls()
     {
-        print_r($_SERVER);
+        $this->display();
+    }
+
+    public function mobileList()
+    {
+        // 获取资源表格
+            // http://www.koudaidaxue.com/index.php/Excel/excel/mobileList?id=1
+        $where = [];
+        if (!empty($_GET['id'])) {
+            $where['id'] = $_GET['id']; 
+        }
+        $where['is_connect'] = ['neq', 0];
+        $list = $this->publicViewModel->where($where)->order('sort desc')->select();
+        foreach ($list as $key => $value) {
+            $temp = $this->infoModel->where(['pid'=>$value['id']])->find();
+            $data = [
+                'province' => $temp['province'],
+                'city' => $temp['city'],
+                'school' => $temp['school'],
+                'area' => $temp['area'],
+                'type' => $temp['type'],
+                'number' => $temp['number'],
+                'fans' => $temp['fans'],
+                'price_one' => $temp['price_one'],
+                'price_two' => $temp['price_two'],
+                'level' => $temp['level']
+            ];
+            unset($value['alias_id']);
+            unset($value['description']);
+            unset($value['is_connect']);
+            unset($value['is_media']);
+            unset($value['is_newrank']);
+            unset($value['timestamp']);
+            unset($value['modified_time']);
+            unset($value['owner']);
+            $list[$key] = array_merge($value, $data);
+        }
+        echo json_encode([
+            'errcode' => 0,
+            'errmsg' => $list
+        ]);
     }
 
     public function getList()
     {
         // 获取资源表格
-            // http://www.koudaidaxue.com/index.php/Excel/excel/getList?id=1
+            // http://www.koudaidaxue.com/index.php/Excel/excel/getList?id=1&page=1
+        $firstRow = (I('get.page',1) - 1) * 40;
         $where = [];
         if (!empty($_GET['id'])) {
-            $where['id'] = $_GET['id'];
+            $where['id'] = $_GET['id']; 
         }
-        $list = $this->publicViewModel->where($where)->select();
+        $list = $this->publicViewModel->where($where)->order('sort desc')->limit($firstRow, 40)->select();
         foreach ($list as $key => $value) {
             $temp = $this->infoModel->where(['pid'=>$value['id']])->find();
             $data = [
@@ -79,6 +120,7 @@ class ExcelController extends Controller
             //     'status' => 0, #认证状态0未认证;1认证
             //     'is_connect' => 0, #是否联系
             //     'is_media' => 0, #是否新媒
+            //     'sort' => 0 #排序
             //     'province' => 1, #省份
             //     'city' =>24, #城市
             //     'school' =>12, #学校
@@ -99,7 +141,8 @@ class ExcelController extends Controller
             'owner' => $post['owner'],
             'status' => $post['status'],
             'is_connect' => $post['is_connect'],
-            'is_media' => $post['is_media']
+            'is_media' => $post['is_media'],
+            'sort' => $post['sort']
         ];
         $infoData = [
             'province' => $post['province'],
@@ -145,7 +188,7 @@ class ExcelController extends Controller
     {
         $post = I('post.');
         // 更新资源表格
-            // http://www.koudaidaxue.com/index.php/Excel/excel/edit?id=12
+            // http://www.koudaidaxue.com/index.php/Excel/excel/edit?id=102
             // $post = [
                 // 'public_id' => '授权方公众号的原始ID',
                 // 'public_name' => '公众号昵称改',
@@ -155,6 +198,7 @@ class ExcelController extends Controller
                 // 'status' => 0, #认证状态0未认证;1认证
                 // 'is_connect' => 0, #是否联系
                 // 'is_media' => 0, #是否新媒
+                // 'sort' => 12 #排序
                 // 'province' => 11, #省份
                 // 'city' =>24, #城市
                 // 'school' =>12, #学校
@@ -175,7 +219,8 @@ class ExcelController extends Controller
             'owner' => $post['owner'],
             'status' => $post['status'],
             'is_connect' => $post['is_connect'],
-            'is_media' => $post['is_media']
+            'is_media' => $post['is_media'],
+            'sort' => $post['sort']
         ];
         $infoData = [
             'province' => $post['province'],

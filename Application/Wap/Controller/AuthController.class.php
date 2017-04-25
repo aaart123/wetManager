@@ -70,7 +70,7 @@ class AuthController extends LoginController
         echo json_encode([
         'errcode' => 0,
         'errmsg' => $list
-        ]); 
+        ]);
         exit;
     }
 

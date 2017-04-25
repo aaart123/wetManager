@@ -31,7 +31,7 @@ class ArticleController extends CommonController
         foreach ($openids as $openid) {
             $array=[
                 'openid'=> $openid['openid'],
-                'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index#/detail?id='.$article_id.'&from=share',
+                'url'=>"http://www.koudaidaxue.com/index.php/wap/index/index?page=detail?id={$article_id}",
                 'first'=>$nickname.'有更新
                          ',
                 'keyword1'=> $content.'...',
@@ -51,6 +51,7 @@ class ArticleController extends CommonController
      */
     public function createArticle($data)
     {
+
         if (!empty($data['url'])) {
             if (strpos($data['url'], 'ttps://')) {
                 $http = 'https://';
@@ -154,12 +155,11 @@ class ArticleController extends CommonController
     public function getArticle($article_id, $user_id)
     {
         $article = $this->articleModel->getData($article_id);
-        if (substr($article['user_id'], 0, 3)=='gh_') {
-            // 公众号数据处理
-            $this->dealWenzhang($article);
-        } else {
-            $this->dealParam($article);
-        }
+            if (is_numeric($article['user_id'])) {
+                $this->dealParam($article);
+            } else {
+                $this->dealWenzhang($article);
+            }
         return $article;
     }
 
@@ -180,10 +180,10 @@ class ArticleController extends CommonController
         $where['is_delete'] = 0;
         $articles = $this->articleModel->getAll($where, $page);
         foreach ($articles as &$article) {
-            if (substr($article['user_id'], 0, 3)=='gh_') {
-                $this->dealWenzhang($article);
-            } else {
+            if (is_numeric($article['user_id'])) {
                 $this->dealParam($article);
+            } else {
+                $this->dealWenzhang($article);
             }
         }
         return $articles;
@@ -198,10 +198,10 @@ class ArticleController extends CommonController
         ];
         $articles = $this->articleThumbView->getAll($where, $page);
         foreach ($articles as &$article) {
-            if (substr($article['user_id'], 0, 3)=='gh_') {
-                $this->dealWenzhang($article);
-            } else {
+            if (is_numeric($article['user_id'])) {
                 $this->dealParam($article);
+            } else {
+                $this->dealWenzhang($article);
             }
         }
         return $articles;
@@ -216,10 +216,10 @@ class ArticleController extends CommonController
         $where['user_id'] = $user_id;
         $articles = $this->articleModel->getAll($where);
         foreach ($articles as &$article) {
-            if (substr($article['user_id'], 0, 3)=='gh_') {
-                $this->dealWenzhang($article);
-            } else {
+            if (is_numeric($article['user_id'])) {
                 $this->dealParam($article);
+            } else {
+                $this->dealWenzhang($article);
             }
         }
         return $articles;
@@ -234,11 +234,11 @@ class ArticleController extends CommonController
         $where['is_delete'] = 0;
         $articles = $this->articleModel->getAll($where, $page);
         foreach ($articles as &$article) {
-            if (substr($article['user_id'], 0, 3)=='gh_') {
-                $this->dealWenzhang($article);
-            } else {
-                $this->dealParam($article);
-            }
+                if (is_numeric($article['user_id'])) {
+                    $this->dealParam($article);
+                } else {
+                    $this->dealWenzhang($article);
+                }
         }
         return $articles;
     }
@@ -256,10 +256,10 @@ class ArticleController extends CommonController
             $articles = $this->articleModel->All($where);
             foreach ($articles as &$article) {
                 $article['weight'] = $this->weightParam($article);
-                if (substr($article['user_id'], 0, 3)=='gh_') {
-                    $this->dealWenzhang($article);
-                } else {
+                if (is_numeric($article['user_id'])) {
                     $this->dealParam($article);
+                } else {
+                    $this->dealWenzhang($article);
                 }
             }
             usort($articles, descSort('weight'));
@@ -288,10 +288,10 @@ class ArticleController extends CommonController
         $where['is_delete'] = 0;
         $articles = $this->articleModel->getAll($where);
         foreach ($articles as &$article) {
-            if (substr($article['user_id'], 0, 3)=='gh_') {
-                $this->dealWenzhang($article);
-            } else {
+            if (is_numeric($article['user_id'])) {
                 $this->dealParam($article);
+            } else {
+                $this->dealWenzhang($article);
             }
         }
         return $articles;
@@ -303,10 +303,10 @@ class ArticleController extends CommonController
             return;
         }
         $time_weight = (($article['create_time'] - strtotime(date('Y-m-d')))/86400)*25;
-        $gh_weight = 5;
+        $gh_weight = 0;
         $img_weight = 5;
         $url_weight = 5;
-        (substr($article['user_id'], 0, 3)=='gh_') && $gh_weight = 0;
+        (is_numeric($article['user_id'])) && $gh_weight = 2.5;
         empty($article['img']) && $img_weight = 0;
         empty($article['url']) && $url_weight = 0;
         $thumb_weight = $article['thumb'] * 1.5;

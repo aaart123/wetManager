@@ -8,11 +8,11 @@
 
 namespace Wap\Controller;
 
-use Think\Controller;
+use Wap\Controller\RegController;
 use \Wap\Controller\ArticleController;
 use \Wap\Controller\CommentController;
 
-class ShareController extends Controller
+class ShareController extends RegController
 {
 
     private $articleActivity;
@@ -23,6 +23,8 @@ class ShareController extends Controller
         $this->articleActivity = new ArticleController();
         $this->commentActivity = new CommentController();
     }
+
+
 
     public function detail()
     {
@@ -145,18 +147,22 @@ class ShareController extends Controller
         ]);
         exit;
     }
-    
 
+
+    /**
+     *
+     */
     public function getUserInfo()
     {
         if($userId = $_GET['userid'])
         {
-            $userInfo = D('Wap/UserInfo')->field('nickname,headimgurl')->where(array('user_id'=>$userId))->find();
-            $userInfo['sub'] = D('subscribe')->where(array('user_id'=>$userId,'subscribe_state'=>'1'))->count();
-            $userInfo['unsub'] = D('subscribe')->where(array('subscribe_user'=>$userId,'subscribe_state'=>'1'))->count();
+            $data = D('Wap/UserInfo')->getUserInfo($userId);
+            $data['sub'] = D('subscribe')->where(array('user_id'=>$userId,'subscribe_state'=>'1'))->count();
+            $data['publics'] = D('PublicSubscribe')->where(array('user_id'=>$userId,'state' =>'1'))->count(); // 关注公众号数
+            $data['unsub'] = D('subscribe')->where(array('subscribe_user'=>$userId,'subscribe_state'=>'1'))->count();
             echo json_encode(array(
                 'errcode'=>0,
-                'errmsg'=>$userInfo
+                'errmsg'=>$data
             ));
         }else{
             echo json_encode(array(
@@ -182,7 +188,7 @@ class ShareController extends Controller
 
         if($publicId = $_POST['public_id'])
         {
-            $data = D('Wap/Public')->field('user_name,alias,nick_name,head_img')->where(array('public_id'=>$publicId))->find();
+            $data = D('Wap/Public')->field('user_name,alias,nick_name,head_img')->where(array('user_name'=>$publicId))->find();
             echo json_encode(array(
                 'errmsg'=>0,
                 'errmsg'=>$data,
@@ -193,6 +199,25 @@ class ShareController extends Controller
                 'errmsg'=>'参数错误',
             ));exit;
         }
+    }
+
+
+    public function isReg()
+    {
+        $wechatInfo = $_SESSION['wechat_info'];
+        if($userId = D('Wap/User')->where(array('openid'=>$wechatInfo['openid']))->getField('user_id'))
+        {
+            echo json_encode(array(
+                'errcode'=>0,
+                'errmsg'=>$userId
+            ));exit;
+        }else{
+            echo json_encode(array(
+               'errcode'=>10001,
+                'errmsg'=>'未注册'
+            ));exit;
+        }
+
     }
 
 

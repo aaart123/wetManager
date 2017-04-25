@@ -8,58 +8,83 @@ use Think\Controller;
 class DataController extends Controller
 {
 
+    private $timestamp = 0;
+    private $publicId;
+
     public function index()
     {
         ini_set('max_execution_time', 0);
-        $mediaInfo = M('kdgx_wap_public')->field('alias,user_name')->select();
-        //$mediaInfo = [['alias'=>'PocketNewMedia','user_name'=>'gh_243fe4c4141f']];
+        $mediaInfo = D('Wap/Public')->field('alias,user_name,nick_name')->select();
         foreach ($mediaInfo as $value) {
             $public_num = $value['alias'] ?: $value['user_name'];
             $data = get_newrank_data($public_num);
             if ($data) {
-                foreach ($data as $v) {
-                    if (!D('Data')->where(array('public_id' => $value['user_name'], 'timestamp' => $v['timestamp']))->getfield('article_count')) {
-                        $array = array_merge($v, array(
-                            'public_id' => $value['user_name'],
+                $datacount = D('Wap/Data')->field('article_count')->where(array('public_id' => $value['user_name'], 'timestamp' => $data['timestamp']))->find();
+                if ($datacount ){
+                    D('Wap/Data')->where(array('public_id' => $value['user_name'], 'timestamp' => $data['timestamp']))
+                        ->save($data);
+                    $day_score = get_day_score($value['user_name'], $data['timestamp']);
+                    $week_score = get_week_score($value['user_name'], $data['timestamp']);
+                    $month_score = get_month_score($value['user_name'], $data['timestamp']);
+                    $fans = get_fans($value['user_name'], $data['timestamp']);
+                    D('Wap/Data')->where(array('public_id'=>$value['user_name'],'timestamp'=>$data['timestamp']))
+                        ->save(array(
+                            'day_score'=>$day_score,
+                            'week_score'=>$week_score,
+                            'month_score'=>$month_score,
+                            'estimate_fans'=>$fans,
+                            'update_time'=>date('Y/m/d H:i:s'),
                         ));
-                        D('Data')->add($array);
-                        $day_score = get_day_score($array['public_id'], $array['timestamp']);
-                        $week_score = get_week_score($array['public_id'], $array['timestamp']);
-                        $month_score = get_month_score($array['public_id'], $array['timestamp']);
-                        $fans = get_fans($array['public_id'], $array['timestamp']);
-                        D('Data')->where(array('public_id' => $array['public_id'], 'timestamp' => $array['timestamp']))
-                            ->save(array('day_score' => $day_score, 'week_score' => $week_score, 'month_score' => $month_score, 'estimate_fans' => $fans));
-                    }
-                }
-            }else{
-                $log = "-----------".$value['user_name']."-------".$value['alias']."\r\n";
-                file_put_contents('public.log',$log,FILE_APPEND);
-                $arr = D('Public')->field('nick_name,alias,user_name')->where(array('user_name'=>$value['user_name']))->find();
-                $wechat = new \Base\Controller\WetchatApiController();
-                $wechat->publicId = 'gh_243fe4c4141f';
-                $array = array(
-                    'openid'=>'oyTk8w-KvFXtWHLlgP9U7RSXWIsE',
-                    'url'=>'',
-                    'first'=>'新榜公众号错误',
-                    'keyword1'=>"\n公众号原始ID:{$arr['user_name']}\n公众号名称：{$arr['nick_name']}\n公众微信号：{$arr['alias']}",
-                    'keyword2'=>date('Y-m-d H:i'),
-                    'remark'=>'',
-                );
-                $wechat->setSubscribeTemplate($array);
 
+                }else {
+                    $array = array_merge($data, array(
+                        'public_id' => $value['user_name'],
+                    ));
+                    D('Wap/Data')->add($array);
+                    $day_score = get_day_score($array['public_id'], $array['timestamp']);
+                    $week_score = get_week_score($array['public_id'], $array['timestamp']);
+                    $month_score = get_month_score($array['public_id'], $array['timestamp']);
+                    $fans = get_fans($array['public_id'], $array['timestamp']);
+                    D('Wap/Data')->where(array('public_id' => $array['public_id'], 'timestamp' => $array['timestamp']))
+                        ->save(array(
+                            'day_score' => $day_score,
+                            'week_score' => $week_score,
+                            'month_score' => $month_score,
+                            'estimate_fans' => $fans,
+                            'update_time' => date('Y/m/d H:i:s'),
+                        ));
+
+                    //$this->sendDaily($array['public_id'], $array['timestamp']);
+                }
             }
         }
     }
 
 
-    public function test()
+    /**
+     * 发送日报模板
+     * @param $openid
+     */
+    public function sendDaily($publicId,$timestamp)
     {
-        $public_num = 'GYBSXT';
-        $data = get_newrank_data($public_num);
-        foreach ($data as $v){
-            $fans = get_fans('gh_db45517db611', $v['timestamp']);
-            echo $fans.'<br/>';
+        $user = D('Wap/Data')->getLoginPublicUser($publicId);
+        foreach ($user as $v){
+            $data = D('Wap/Data')->where(array('public_id'=>$publicId,'timestamp'=>$timestamp))->find();
+            $nick_name = D('Wap/Public')->where(array('user_name'=>$publicId))->getField('nick_name');
+            $num = D('Wap/Data')->getRank($publicId);
+            $array = array(
+                'openid'=>$v['openid'],
+                'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index',
+                'first'=>"你订阅的".date('m月d日',$timestamp)."的新媒快报如下",
+                'keyword1'=>"\t【".$nick_name."】\t快报",
+                'keyword2'=>"总阅读数：{$data['article_clicks_count']}↑，点赞数：{$data['article_likes_count']}↑，口袋指数：{$data['day_score']}↑，圈内排名：{$num}↑",
+                'remark'=>"还为您精选昨日10条圈内动态。\n点击查看快报详情",
+            );
+            $obj = new \Base\Controller\WetchatApiController();
+            $obj->publicId = 'gh_243fe4c4141f';
+            $a = $obj->setBulletinTemplate($array);
         }
+
     }
 
 }
