@@ -14,7 +14,7 @@ class FansController extends CommonController
         parent:: __construct();
     }
 
-    private function initOpenid($data)
+    public function initOpenid($data)
     {
         if (empty($data['openid']) || empty($data['public_id'])) {
             return false;
@@ -53,7 +53,7 @@ class FansController extends CommonController
 
     public function initFans($public_id)
     {
-        exit('保护状态下不运行执行');
+        exit('保护状态下不允许执行');
         $wetApi = new WetchatApiController();
         $openids = $wetApi->getOpenidList($public_id);
         $total = $openids['total'];

@@ -253,31 +253,31 @@ class WetchatApiController extends BaseController
     /**
      * 获取用户增减数据
      */
-    public function getUserSummary()
+    public function getUserSummary($data)
     {
-        $this->publicId = 'gh_c75321282c18';
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getusersummary?access_token={$token}";
-        $data = '{
-            "begin_date": "2017-03-11", 
-            "end_date": "2017-03-11"
-        }';
-        $response = json_decode(httpRequest($url, $data));
+        // $data = '{
+        //     "begin_date": "2017-03-11", 
+        //     "end_date": "2017-03-11"
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
     /**
      * 获取累计用户数据
      */
-    public function getUserCumulate()
+    public function getUserCumulate($data)
     {
-        $this->publicId = 'gh_c75321282c18';
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token={$token}";
-        $data = '{
-            "begin_date": "2017-03-11", 
-            "end_date": "2017-03-11"
-        }';
+        // $data = '{
+        //     "begin_date": "2017-03-11", 
+        //     "end_date": "2017-03-11"
+        // }';
         $response = json_decode(httpRequest($url, $data));
+        return $response;
     }
 
     /**
@@ -285,217 +285,232 @@ class WetchatApiController extends BaseController
      */
     public function getArticleSummary()
     {
-        $this->publicId = 'gh_c75321282c18';
+        // $this->publicId = 'gh_c75321282c18';
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getarticlesummary?access_token={$token}";
-        $data = '{
-            "begin_date": "2017-03-11", 
-            "end_date": "2017-03-11"
-        }';
-        $response = json_decode(httpRequest($url, $data));
+        // $data = '{
+        //     "begin_date": "2017-03-11", 
+        //     "end_date": "2017-03-11"
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
     /**
      * 获取图文群发总数据
      */
-    public function getArticleTotal()
+    public function getArticleTotal($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getarticletotal?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
     /**
      * 获取图文统计数据
      */
-    public function getUserRead()
+    public function getUserRead($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getuserread?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;   
     }
 
     /**
      * 获取图文统计分时数据
      */
-    public function getUserReadHour()
+    public function getUserReadHour($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getuserreadhour?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data)); 
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response; 
     }
 
     /**
      * 获取图文分享转发数据
      */
-    public function getUserShare()
+    public function getUserShare($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getusershare?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;   
     }
 
     /**
      * 获取图文分享转发分时数据
      */
-    public function getUserShareHour()
+    public function getUserShareHour($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getusersharehour?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;   
     }
 
     /**
      * 获取消息发送概况数据
      */
-    public function getUpStreamMsg()
+    public function getUpStreamMsg($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsg?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);  
+        return $response; 
     }
 
     /**
      * 获取消息分送分时数据
      */
-    public function getUpStreamMsgHour()
+    public function getUpStreamMsgHour($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsghour?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));  
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true); 
+        return $response; 
     }
 
     /**
      * 获取消息发送周数据
      */
-    public function getUpStreamMsgWeek()
+    public function getUpStreamMsgWeek($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsgweek?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));  
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;  
     }
 
     /**
      * 获取消息发送月数据
      */
-    public function getUpStreamMsgMonth()
+    public function getUpStreamMsgMonth($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsgmonth?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;   
     }
 
     /**
      * 获取消息发送分布数据
      */
-    public function getUpStreamMsgDist()
+    public function getUpStreamMsgDist($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsgdist?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;   
     }
 
     /**
      * 获取消息发送分布周数据
      */
-    public function getUpStreamMsgDistWeek()
+    public function getUpStreamMsgDistWeek($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsgdistweek?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
     /**
      * 获取消息发送分布月数据
      */
-    public function getUpStreamMsgDistMonth()
+    public function getUpStreamMsgDistMonth($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getupstreammsgdistmonth?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
     /**
      * 获取接口分析数据
      */
-    public function getInterfaceSummary()
+    public function getInterfaceSummary($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getinterfacesummary?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
     /**
      * 获取接口分析数据
      */
-    public function getInterfaceSummaryHour()
+    public function getInterfaceSummaryHour($data)
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getinterfacesummaryhour?access_token={$token}";
-        $data = '{
-            "begin_date": "",
-            "end_date": ""
-        }';
-        $response = json_decode(httpRequest($url, $data));   
+        // $data = '{
+        //     "begin_date": "",
+        //     "end_date": ""
+        // }';
+        $response = json_decode(httpRequest($url, $data),true);
+        return $response;
     }
 
 /* ------------------------------------------  账户管理      ---------------------------------------------------------- */
     /**
      * 创建二维码ticket
      */
-    private function getQticket($scene = array())
+    public function getQticket($scene = array())
     {
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={$token}";
@@ -518,7 +533,7 @@ class WetchatApiController extends BaseController
     public function getAction()
     {
         // http://www.koudaidaxue.com/base/wetchatApi/getAction
-        $data['state'] = 0;
+        $data['state'] = -1;
         $actionModel = D('Action');
         $action_id = $actionModel->addData($data);
         echo json_encode([
