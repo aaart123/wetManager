@@ -56,7 +56,6 @@ class ExcelController extends Controller
                 'price_two' => $temp['price_two'],
                 'level' => $temp['level']
             ];
-            unset($value['alias_id']);
             unset($value['description']);
             unset($value['is_connect']);
             unset($value['is_media']);

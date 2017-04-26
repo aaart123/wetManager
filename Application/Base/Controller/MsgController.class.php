@@ -13,9 +13,11 @@ use Event\Controller\SubscribeController;
 class MsgController extends CommonController
 {
 
+    private $subscributeObj;
     public function __construct()
     {
         parent::__construct();
+        $this->subscributeObj = new SubscribeController();
     }
 
     /**
@@ -56,14 +58,16 @@ class MsgController extends CommonController
             case 'event':       # 事件
                 switch ($param['Event']) {
                     case 'SCAN': #参数二维码事件
-                        return $this->subscribeEvent($param);
+                        return $this->scanEvent($param);
                     case 'subscribe':   # 订阅事件
-                        if (isset($param['EventKey'])) {  # 参数二维码订阅事件
-                            return $this->subscribeEvent($param);
+                        $this->subscributeObj->subscribeLog($param);
+                        if (!empty($param['EventKey'])) {  # 参数二维码订阅事件
+                            return $this->scanEvent($param);
                         }
                         return $this->distributeEvent($param);
                     case 'unsubscribe': # 取消订阅事件
-                        if (isset($param['EventKey'])) {  # 参数二维码取消订阅事件
+                        $this->subscributeObj->subscribeLog($param);
+                        if (!empty($param['EventKey'])) {  # 参数二维码取消订阅事件
                         }
                         return $this->subscribeEvent($param);
                     case 'LOCATION':    # 上报地理位置事件
@@ -146,18 +150,12 @@ class MsgController extends CommonController
         }
     }
 
-    public function subscribeEvent($param)
+    /**
+     * 二维码事件
+     */
+    public function scanEvent($param)
     {
-        // file_put_contents('qr.log', print_r($param, true));
-        // $param = [
-        //     'ToUserName' => 'gh_243fe4c4141f',
-        //     'FromUserName' => 'oyTk8w_oR1OIr4U-OWE1g1YJ4q7A',
-        //     'EventKey' => 'newMediaWap'
-        // ];
-        $subscribute = new SubscribeController();
-        $subscribute->subscribeLog($param);
-        $replayMsg = $subscribute->parseQRcode($param);
-        // echo $replayMsg;exit;
+        $replayMsg = $this->subscributeObj->parseQRcode($param);
         $this->sendMsg($replayMsg);
     }
 }

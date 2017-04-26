@@ -79,13 +79,15 @@ class WetchatApiController extends BaseController
 
     /**
      * 批量获取用户信息列表
-     * @param str appid
+     * @param str public_id
      * @param arr openid数据
      * @return arr 用户信息
      */
-    protected function getOpenidInfoList($authorizer_appid, $data)
+    public function getOpenidInfoList($public_id, $data)
     {
-        $authorizer_access_token = $this->getAuths($authorizer_appid);
+        $oauthApi = new OauthApiController();
+        $authorizer_appid = $oauthApi->getAuthorizerAppid($public_id);
+        $authorizer_access_token = $oauthApi->getAuths($authorizer_appid);
         $url = "https://api.weixin.qq.com/cgi-bin/user/info/batchget?access_token={$authorizer_access_token}";
         $response = httpRequest($url, $data);
         $response = json_decode($response, true);
@@ -94,18 +96,20 @@ class WetchatApiController extends BaseController
 
     /**
      * 批量获取用户列表
-     * @param string appid
+     * @param string public_id
      * @param string nextOpenid 默认为空
      * @return array 关注者列表
      */
-    protected function getOpenidList($authorizer_appid, $nextOpenid = '')
+    public function getOpenidList($public_id, $nextOpenid = '')
     {
+        $oauthApi = new OauthApiController();
+        $authorizer_appid = $oauthApi->getAuthorizerAppid($public_id);
+        $authorizer_access_token = $oauthApi->getAuths($authorizer_appid);
         if (empty($nextOpenid)) {
             $url = "https://api.weixin.qq.com/cgi-bin/user/get?access_token={$authorizer_access_token}";
         } else {
             $url = "https://api.weixin.qq.com/cgi-bin/user/get?access_token={$authorizer_access_token}&next_openid={$nextOpenid}";
         }
-        $authorizer_access_token = $this->getAuths($authorizer_appid);
         $response = httpRequest($url);
         $response = json_decode($response, true);
         return $response;

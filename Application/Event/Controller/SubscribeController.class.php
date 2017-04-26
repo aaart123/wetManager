@@ -15,20 +15,8 @@ class SubscribeController extends CommonController
     }
 
     /**
-     * 改变关注状态
-     * @param str openid
-     * @param int 关注与否
-     * @return boolean
+     * 新媒参数二维码解析
      */
-    public function changeSubscribe($openId, $subscribe = 1)
-    {
-        $data = [
-            'openid' => $openId,
-            'subscribe' => $subscribe
-        ];
-        return $this->editOpenidData($data);
-    }
-
     private function xinMei($param)
     {
         if (substr($param['EventKey'],0,2)=='10' || substr($param['EventKey'],0,10)=='qrscene_10') {
@@ -40,7 +28,7 @@ class SubscribeController extends CommonController
             $actionModel = D('Base/Action');
             $where['action_id'] = $action_id;
             $save['openid'] = $param['FromUserName'];
-            $save['state'] = 1;
+            $save['state'] = 1; 
             $actionModel->editData($where, $save);
             $title = "欢迎使用口袋大学";
             $description = "高校新媒体人的圈子社区, 分享运营者的智慧";
@@ -48,7 +36,7 @@ class SubscribeController extends CommonController
             $msg = sprintf($this->msgTemplate['news'], $param['FromUserName'], 
                     $param['ToUserName'], time(), 1, $title, $description, '', $url, 0);
             return $msg;
-        }
+        }  
         if ($param['EventKey']=='newMediaWap' || $param['EventKey']=='qrscene_newMediaWap') {
             $title = "新媒圈, 邀您内测";
             $description = "高校新媒体人的圈子社区, 分享运营者的智慧";
@@ -73,6 +61,9 @@ class SubscribeController extends CommonController
         }
     }
 
+    /**
+     * 口袋高校助手参数二维码解析
+     */
     private function gxZhuShou($param)
     {
         if (substr($param['EventKey'],0,1)== 1 || substr($param['EventKey'],0,9)=='qrscene_1') {
@@ -113,32 +104,53 @@ class SubscribeController extends CommonController
         }
     }
 
+    /**
+     * 杭电公作室参数二维码解析
+     */
     private function hdGzs($param)
     {
-        if (substr($param['EventKey'],0,1)== 1 || substr($param['EventKey'],0,9)=='qrscene_1') {
-            if (substr($param['EventKey'],0,1)=='1') {
+
+        if (substr($param['EventKey'],0,1)== 3 || substr($param['EventKey'],0,9)=='qrscene_3') {
+            $url = "http://www.pocketuniversity.cn/index.php/Sunny/index";
+            $description = '点此继续使用约课系统';
+            if (substr($param['EventKey'],0,1)==1) {
                 $key = substr($param['EventKey'], 1);
             } else {
                 $key = substr($param['EventKey'], 9);
             }
-            $wetApi = new WetchatApiController();
+        }
+        if (substr($param['EventKey'],0,1)== 2 || substr($param['EventKey'],0,9)=='qrscene_2') {
+            $url = "http://www.pocketuniversity.cn/index.php/SunnySport/index";
+            $description = '点此继续使用阳光体育系统';
+            if (substr($param['EventKey'],0,1)==2) {
+                $key = substr($param['EventKey'], 1);
+            } else {
+                $key = substr($param['EventKey'], 9);
+            }
         }
         $where = [
             'openid' => $param['FromUserName'],
             'public_id' => $param['ToUserName']
         ];
         $save['uid'] = $key;
+        $openidModel = M('kddx_user_openid','','connection');
         $openidModel->where($where)->save($save);
-        $content = '恭喜你完成绑定';
-        $msg = sprintf($this->msgTemplate['text'], $param['FromUserName'], $param['ToUserName'], time(), $content);
+        $title = '恭喜你完成绑定';
+        $msg = sprintf($this->msgTemplate['news'], $param['FromUserName'], 
+                $param['ToUserName'], time(), 1, $title, $description, '', $url, 0);
         return $msg;
     }
-    /**
+    /**  
      * 参数二维码分发
      */
     public function parseQRcode($param)
     {
         file_put_contents('qr.log', print_r($param, true));
+        // $param = [
+        //     'ToUserName' => 'gh_19fb1bed539e',
+        //     'FromUserName' => 'oIFqdt0Rb0R-TmdGiAISuX3JMc5c',
+        //     'EventKey' => 191031
+        // ];
         switch ($param['ToUserName']) {
             case 'gh_243fe4c4141f':
                 return $this->xinMei($param);
@@ -162,7 +174,7 @@ class SubscribeController extends CommonController
             'openid' => $param['FromUserName'],
             'public_id' => $param['ToUserName']
         ];
-        if ($data['subscribe']) {
+        if ($param['Event']=='subscribe') {
             $save['public_id'] = $param['ToUserName'];
             $save['openid'] = $data['openid'];
             $save['subscribe'] = $data['subscribe'];
