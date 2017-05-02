@@ -14,6 +14,8 @@ class BulletinController extends Controller
 {
     public function index()
     {
+
+
         $send_date = date('Y-m-d');
         $sql = "SELECT u.`openid`,
                        u.`user_id`,
@@ -27,11 +29,15 @@ class BulletinController extends Controller
                     FROM `log_bulletin`
                 WHERE `send_date`= '$send_date')";
         $array = M()->query($sql);
+
+
         $count = count($array);
 
 
         $d = 21-date('H');
-        if($d>10 && $d<1)
+
+
+        if($d<=10 && $d>=1)
         {
             $times = ceil($count/$d);
         }else{
@@ -49,10 +55,10 @@ class BulletinController extends Controller
             $array = array(
                 'openid'=>$value['openid'],
                 'url'=>'http://www.koudaidaxue.com/index.php/Wap/index/index?page=dialy',
-                'first'=>"你订阅的".$send_date."的新媒快报如下",
+                'first'=>"你订阅的".$send_date."的新媒快报如下\n",
                 'keyword1'=>"【".$value['nickname']."】的新媒快报",
                 'keyword2'=>"为您精选昨日10条圈内动态。",
-                'remark'=>"点击查看快报详情",
+                'remark'=>"\n点击查看快报详情",
             );
             $obj = new \Base\Controller\WetchatApiController();
             $obj->publicId = 'gh_243fe4c4141f';

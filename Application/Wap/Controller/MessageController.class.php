@@ -32,17 +32,38 @@ class MessageController extends Controller
 
     public function test()
     {
+        #公众号排名/公众号总数*100*0.5+公众号关注/平台最大关注数*100*0.5
+        $array = D('Wap/Public')->field('user_name')->select();
 
-        $obj = new \Base\Controller\WetchatApiController();
-        $obj->publicId = 'gh_243fe4c4141f';
-        $token = $obj->getAccessToken();
-        $url = 'https://api.weixin.qq.com/datacube/getarticlesummary?access_token=' . $token;
-        $json = '{ 
-                    "begin_date": "2017-04-23", 
-                    "end_date": "2017-04-23"
-                }';
-        $data = json_decode(https_request($url, $json));
+        foreach($array as $value)
+        {
+            $publicId = $value['user_name'];
+            $publicRank = D('Wap/Data')->getRank($publicId);#公众号排名
+            $publicNum = count($array);#公众号总数
+            $publicSubCOunt = D('Wap/Public')->where(array('user_name'=>$publicId,'state'=>'1'))->count();#公众号关注人数
+            $sql = "SELECT `public_id`,
+                        COUNT(`user_id`) as count
+                    FROM `pocket`.`kdgx_public_subscribe`
+                    WHERE `state`= '1'
+                    GROUP BY `public_id`
+                    ORDER BY COUNT(`user_id`) DESC LIMIT 0,1";
+            $re = M()->query($sql);
+            $publicMaxSubCount = $re[0]['count'];#平台最大关注数
+            $score = $publicRank/$publicNum*100*0.5+$publicSubCOunt/$publicMaxSubCount*100*0.5;
+            $data[] = [
+                'publicRank'=>$publicRank,
+                'publicNum'=>$publicNum,
+                'publicSubCOunt'=>$publicSubCOunt,
+                'publicMaxSubCount'=>$publicMaxSubCount,
+                'score'=>$score,
+            ];
+
+        }
+
+
         print_r($data);
+
+
 
     }
 

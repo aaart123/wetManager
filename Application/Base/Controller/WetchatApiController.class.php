@@ -273,17 +273,22 @@ class WetchatApiController extends BaseController
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token={$token}";
         // $data = '{
-        //     "begin_date": "2017-03-11", 
+        //     "begin_date": "2017-03-11",
         //     "end_date": "2017-03-11"
         // }';
-        $response = json_decode(httpRequest($url, $data));
+        $response = json_decode(httpRequest($url, $data),true);
+        $response = [
+            'ref_date'=>$response['list'][0]['ref_date'],
+            'user_source'=>$response['list'][0]['user_source'],
+            'cumulate_user'=>$response['list'][0]['cumulate_user'],
+        ];
         return $response;
     }
 
     /**
      * 获取图文群发每日数据
      */
-    public function getArticleSummary()
+    public function getArticleSummary($data)
     {
         // $this->publicId = 'gh_c75321282c18';
         $token = $this->getAccessToken();
@@ -679,6 +684,42 @@ class WetchatApiController extends BaseController
         return $response;
     }
     
+
+        /**
+     * 授权模板
+     * @param $array
+     * @return array|mixed|\stdClass
+     */
+    public function setBulletinTemplate($array)
+    {
+        $data =json_encode(array(
+            'touser'=>$array['openid'],
+            'template_id'=>'-pXoqKTrpt7tShMMPDF3OxlMutK1zR1ZympgjUQBAhk',
+            'url'=>$array['url'],
+            'data'=>[
+                'first'=>[
+                    'value'=>$array['first'],
+                    'color'=>'#173177',
+                ],
+                'keyword1'=>[
+                    'value'=>$array['keyword1'],
+                    'color'=>'#173177',
+                ],
+                'keyword2'=>[
+                    'value'=>$array['keyword2'],
+                    'color'=>'#173177',
+                ],
+                'remark'=>[
+                    'value'=>$array['remark'],
+                    'color'=>'#11b692',
+                ]
+            ],
+        ));
+        $access_token = $this->getAccessToken();
+        $url = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_token='.$access_token;
+        $response = json_decode(https_request($url,$data),true);
+        return $response;
+    }
     
     
 }

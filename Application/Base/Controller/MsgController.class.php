@@ -119,14 +119,19 @@ class MsgController extends CommonController
             $message = new MessageController();
             $replayMsg = $message->distributeText($param, $key);
             $this->sendMsg($replayMsg);
-        } elseif ($appMsg = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'app')) {
+        }
+        if ($appMsg = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], $param['Content'], 'app')) {
             $app = new AppController();
             $replayMsg = $app->distributeApp($param, $appMsg);
             $this->sendMsg($replayMsg);
-        } else {
-            echo 'success';
-            exit;
         }
+        if ($key = $this->publicKeyModel->getKeyStrategy($param['ToUserName'], 'all', 'text')) {
+            $message = new MessageController();
+            $replayMsg = $message->distributeText($param, $key);
+            $this->sendMsg($replayMsg);
+        }
+        echo 'success';
+        exit;
     }
 
     /**
@@ -155,6 +160,13 @@ class MsgController extends CommonController
      */
     public function scanEvent($param)
     {
+        $data = [
+            'create_time' => time(),
+            'public_id' => $param['ToUserName'],
+            'openid' => $param['FromUserName'],
+            'key' => $param['EventKey']
+        ];
+        M('kdgx_scan_log')->add($data);
         $replayMsg = $this->subscributeObj->parseQRcode($param);
         $this->sendMsg($replayMsg);
     }

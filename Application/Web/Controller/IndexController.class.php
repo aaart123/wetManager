@@ -10,7 +10,7 @@ class IndexController extends Controller
     public function articleQRCode($article_id)
     {
         // 获取官网圈子文章的参数二维码
-            // http://www.koudaidaxue.com/index.php/web/index/articleQRCode?article_id=340
+            // http://www.koudaidaxue.com/index.php/web/index/articleQRCode?article_id=1
         $wechatApi = new WetchatApiController();
         $wechatApi->publicId = 'gh_243fe4c4141f';
         $scene['action'] = 'QR_SCENE';
@@ -24,4 +24,14 @@ class IndexController extends Controller
         header('Content-type:image/jpg');
         echo $QRcode;
     }
+
+    public function publicRank()
+    {
+        $data = D('Wap/Data')->getRankData();
+        echo json_encode([
+            'errcode'=>0,
+            'errmsg'=>$data,
+        ]);
+    }
+
 }

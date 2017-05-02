@@ -86,4 +86,13 @@ class FansController extends CommonController
         }
     }
 
+    public function getAll($public_id)
+    {
+        $firstRow = (I('get.page', 1) - 1) * 20; 
+        $openidModel = M('kddx_user_openid','','connection');
+        $where['public_id'] = $public_id;
+        $data = $openidModel->where($where)->limit($firstRow, 20)->select();
+        return $data;
+    }
+
 }

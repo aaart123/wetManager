@@ -140,6 +140,8 @@ class ReceiveController extends OauthApiController
             // </xml>';
             // $errCode = 0;
         if ($errCode == 0) {
+            $data['content'] = $msg;
+            M('kdgx_log')->add($data);
             $param = xml2Arr($msg);
             $this->msgActivity->replyMsg($param);
         } else {

@@ -4,7 +4,7 @@
 define('APP_PATH', dirname(__FILE__).'/Application/');
 
 // 开启开发者调试模式
-define('APP_DEBUG',true);
+define('APP_DEBUG',false);
 // 开发模式
 define('DEV',false);
 

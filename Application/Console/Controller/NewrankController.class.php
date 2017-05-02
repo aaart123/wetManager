@@ -144,7 +144,7 @@ class NewrankController extends Controller
         $data['publicname'] = $article['user_id'];
         $data['url'] = $article['url'];
         $data['public_time'] = $article['public_time'];
-        $black = ['gh_db45517db611','wxid_16492264917'];
+        $black = ['gh_db45517db611','wxid_1649226491711'];
         if (!in_array($article['user_id'], $black) 
             && !$this->blackActivity->isBlack($article['user_id']) 
             && $article['public_time'] > strtotime('-3 day') 
