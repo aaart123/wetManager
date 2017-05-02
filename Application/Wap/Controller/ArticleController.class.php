@@ -211,10 +211,10 @@ class ArticleController extends CommonController
      * 获取个人发表文章
      * @param int
      */
-    public function getSelfList($user_id)
+    public function getSelfList($user_id, $page)
     {
         $where['user_id'] = $user_id;
-        $articles = $this->articleModel->getAll($where);
+        $articles = $this->articleModel->getAll($where, $page);
         foreach ($articles as &$article) {
             if (is_numeric($article['user_id'])) {
                 $this->dealParam($article);

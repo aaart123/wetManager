@@ -75,8 +75,19 @@ class ExcelController extends Controller
     {
         // 获取资源表格
             // http://www.koudaidaxue.com/index.php/Excel/excel/getList?id=1&page=1
-        $firstRow = (I('get.page',1) - 1) * 40;
+        $content = $_POST['content'];
         $where = [];
+        if (!empty($content)) {
+            $content = '%'.$content.'%';
+            $wh = [
+                'public_name' => ['like', $content],
+                'public_id' => ['like', $content],
+                'alias_id' => ['like', $content],
+                '_logic' => 'or'
+            ];
+            $where['_complex'] = $wh;
+        }
+        $firstRow = (I('get.page',1) - 1) * 40;
         if (!empty($_GET['id'])) {
             $where['id'] = $_GET['id']; 
         }

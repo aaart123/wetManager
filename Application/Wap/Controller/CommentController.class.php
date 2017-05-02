@@ -195,10 +195,10 @@ class CommentController extends CommonController
      * 获取个人发表的评论
      * @param int
      */
-    public function getSelfList($user_id)
+    public function getSelfList($user_id, $page)
     {
         $where['user_id'] = $user_id;
-        $comments = $this->commentModel->relation('article')->getAll($where);
+        $comments = $this->commentModel->relation('article')->getAll($where, $page);
         foreach ($comments as &$comment) {
             $this->dealParam($comment);
         }

@@ -15,7 +15,6 @@ class BulletinController extends Controller
     public function index()
     {
 
-
         $send_date = date('Y-m-d');
         $sql = "SELECT u.`openid`,
                        u.`user_id`,

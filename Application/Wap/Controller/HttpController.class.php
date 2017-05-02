@@ -299,9 +299,10 @@ class HttpController extends BaseController
     {
         // 个人相关动态(发布的圈子;发布的评论)无user_id参数则表示自己
             // http://www.koudaidaxue.com/index.php/wap/http/selfRelate?user_id=2
+        $page = I('get.page',1);
         $user_id = I('get.user_id',$this->user_id);
-        $articleList = $this->articleActivity->getSelfList($user_id);
-        $commentList = $this->commentActivity->getSelfList($user_id);
+        $articleList = $this->articleActivity->getSelfList($user_id, $page);
+        $commentList = $this->commentActivity->getSelfList($user_id, $page);
         $list = array_merge($articleList, $commentList);
         if (substr($user_id, 0, 3) == 'gh_') {
             usort($list, descSort('public_time'));

@@ -24,7 +24,6 @@ class IndexController extends Controller
         header('Content-type:image/jpg');
         echo $QRcode;
     }
-
     public function publicRank()
     {
         $data = D('Wap/Data')->getRankData();

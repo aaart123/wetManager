@@ -90,7 +90,8 @@ class ArtificialController extends CommonController
         $where['id'] = $id;
         $data = $this->publicTempModel->getData($where);
         $temp = get_newrank_media_info($data['alias']);
-        $data['qrcode_url'] = "http://open.weixin.qq.com/qr/code/?username={$data['alias']}";
+        $qrcode = empty($temp['user_name']) ? $data['alias'] : $temp['user_name'];
+        $data['qrcode_url'] = "http://open.weixin.qq.com/qr/code/?username={$qrcode}";
         $data['head_img'] = "";
         $data['user_name'] = empty($temp['user_name']) ? $data['user_name'] : $temp['user_name'];
         $data['nick_name'] = empty($temp['nick_name']) ? $data['nick_name'] : $temp['nick_name'];
