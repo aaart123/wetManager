@@ -1,10 +1,10 @@
 <?php 
-
+header('Access-Control-Allow-Origin:*');
 // 定义程序文件路径
 define('APP_PATH', dirname(__FILE__).'/Application/');
 
 // 开启开发者调试模式
-define('APP_DEBUG',false);
+define('APP_DEBUG',true);
 // 开发模式
 define('DEV',false);
 

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: 李欣
- * Date: 2017/4/6
- * Time: 10:19
- */
 
 namespace Wap\Controller;
 

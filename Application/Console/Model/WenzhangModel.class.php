@@ -21,8 +21,8 @@ class WenzhangModel extends Model
  
     public function editData($where, $save)
     {
-        !$this->create($save) && E($this->getError());
-        return $this->where($where)->save();
+        !($data= $this->create($save)) && E($this->getError());
+        return $this->where($where)->save($save);
     }
 
     public function getAll($where = array())

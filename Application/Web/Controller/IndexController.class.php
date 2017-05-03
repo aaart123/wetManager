@@ -15,7 +15,7 @@ class IndexController extends Controller
         $wechatApi->publicId = 'gh_243fe4c4141f';
         $scene['action'] = 'QR_SCENE';
         $scene['key'] = 'scene_id';
-        $scene['expire'] = 300;
+        $scene['expire'] = 86400;
         $scene['scene'] = '11'.$article_id;
         $ticket = $wechatApi->getQticket($scene);
         $ticket = urldecode($ticket);

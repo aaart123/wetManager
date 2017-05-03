@@ -118,6 +118,7 @@ class NewrankController extends Controller
         $data['video_url'] = $article['videoUrl'];
         $data['order_num'] = $article['orderNum'];
         $data['ori_author'] = $article['oriAuthor'];
+        $data['public_id'] = $article['public_id'];
         $data['public_time'] = strtotime($article['publicTime']);
         if ($result = $this->WenzhangModel->getAll($where)) {
             $data['id'] = $result[0]['id'];
@@ -148,7 +149,7 @@ class NewrankController extends Controller
         if (!in_array($article['user_id'], $black) 
             && !$this->blackActivity->isBlack($article['user_id']) 
             && $article['public_time'] > strtotime('-3 day') 
-            && ($data['clicks_count'] > 1200 && $data['like_count'] > 20)) {
+            && ($data['clicks_count'] > 1500 && $data['like_count'] > 30)) {
             $data['is_delete'] = 0;
             if ($result = $this->articleModel->getAll($where)) {
                 $data['article_id'] = $result[0]['article_id'];
@@ -231,17 +232,20 @@ class NewrankController extends Controller
         $accounts = $this->getAlias();
         foreach ($accounts as $value) {
             $public = $this->getuuid($value['alias']);
-            $uuid = $public['uuid'];
-            $info = json_decode($this->getAriticles($uuid), true);
-            $articles = $info['value']['lastestArticle'];
-            foreach ($articles as &$article) {
-                $data = $this->insertWenzhang($article);
-                if (!($data['clicks_count'] > 1200 && $data['like_count'] > 20)) {
-                    $data['user_id'] = D('Wap/Public')->where(['nick_name'=> $data['author']])->getField('user_name');
-                    if (empty($data['user_id'])) {
-                        continue ;
+            if (!empty($public)) {
+                $uuid = $public['uuid'];
+                $info = json_decode($this->getAriticles($uuid), true);
+                $articles = $info['value']['lastestArticle'];
+                foreach ($articles as &$article) {
+                    $article['public_id'] = $value['user_name'];
+                    $data = $this->insertWenzhang($article);
+                    if (!($data['clicks_count'] > 1500 && $data['like_count'] > 30)) {
+                        $data['user_id'] = $article['public_id'];
+                        if (empty($data['user_id'])) {
+                            continue ;
+                        }
+                        $this->insertArticle($data);
                     }
-                    $this->insertArticle($data);
                 }
             }
         }
@@ -252,14 +256,14 @@ class NewrankController extends Controller
      */
     public function auto()
     {   
-        $map['clicks_count'] = ['gt', 1200];
-        $map['like_count'] = ['gt', 20];
+        $map['clicks_count'] = ['gt', 1500];
+        $map['like_count'] = ['gt', 30];
         $map['_logic'] = 'and';
         $where['_complex'] = $map;
         $where['create_time'] = ['between', [strtotime('-1 day'), time()]];
         $articles = $this->WenzhangModel->getAll($where);
         foreach ($articles as $article) {
-            $article['user_id'] = D('Wap/Public')->where(['nick_name'=> $article['author']])->getField('user_name');
+            $article['user_id'] = $article['public_id'];
             if ($this->insertArticle($article)) {
                 return; 
             } else {

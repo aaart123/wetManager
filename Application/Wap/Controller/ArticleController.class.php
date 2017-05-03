@@ -253,6 +253,7 @@ class ArticleController extends CommonController
             return $articles;
         } else {
             $where['is_delete'] = 0;
+            $where['content'] = ['notlike', '大家好%'];
             $articles = $this->articleModel->All($where);
             foreach ($articles as &$article) {
                 $article['weight'] = $this->weightParam($article);
@@ -286,7 +287,7 @@ class ArticleController extends CommonController
     public function getHotList()
     {
         $where['is_delete'] = 0;
-        $where['content'] = ['not like', '大家好%'];
+        $where['content'] = ['notlike', '大家好%'];
         $articles = $this->articleModel->getAll($where);
         foreach ($articles as &$article) {
             if (is_numeric($article['user_id'])) {
